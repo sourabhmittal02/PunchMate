@@ -352,8 +352,7 @@ export default class RestaurantDetail extends Component {
                         <Image style={styles.StarImg} source={require('./images/star.png')} />
                     </View>
                     <View>
-                        <Image style={styles.StarImg} source={require('./images/star.png')} />
-                        <Text style={{ color:'#000',alignSelf:'center',margin:15, position: 'absolute', fontFamily:'Inter-Bold' }}>Free</Text>
+                        <Image style={styles.StarImg} source={require('./images/starfree.png')} />
                     </View>
                 </View>
                 <View style={{ margin: -5, marginTop: -10 }}>

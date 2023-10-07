@@ -18,7 +18,7 @@ export default class BottomBar extends Component {
                 <View style={{flex:1}}>
                     <TouchableOpacity style={stylesBar.btnBar} onPress={onHomePress}>
                     <Image style={stylesBar.imageIcon} source={home}></Image>
-                        <Text style={stylesBar.buttonText}>Home </Text>
+                        <Text style={stylesBar.buttonText}>Home</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{flex:0.8}}></View>
