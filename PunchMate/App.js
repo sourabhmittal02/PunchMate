@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import NavigationService from './src/Service/NavigationService';
 
 import Splash from './src/Splash';
+import Main from './src/Main';
 import Login from './src/Login';
 import Dashboard  from './src/Dashboard';
 import ValidatePin from './src/ValidatePin';
@@ -14,6 +15,7 @@ import MyAccount from './src/MyAccount';
 import RestaurantDetail from './src/RestaurantDetail';
 import Cart from './src/Cart';
 import Map from './src/Map';
+import QRCodes from './src/QRCodes';
 const Stack = createNativeStackNavigator();
 function App() {
   global.URL = "https://punchmate01.azurewebsites.net/";
@@ -25,6 +27,7 @@ function App() {
       }}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Splash" component={Splash} />
+          <Stack.Screen name="Main" component={Main} />
           <Stack.Screen name="Login" component={Login} />         
           <Stack.Screen name="ValidatePin" component={ValidatePin} />         
           <Stack.Screen name="Registration" component={Registration} />         
@@ -33,6 +36,7 @@ function App() {
           <Stack.Screen name="MyAccount" component={MyAccount} />         
           <Stack.Screen name="RestaurantDetail" component={RestaurantDetail} />         
           <Stack.Screen name="Cart" component={Cart} />         
+          <Stack.Screen name="QRCodes" component={QRCodes} />         
           <Stack.Screen name="Map" component={Map} />         
         </Stack.Navigator>
       </NavigationContainer>

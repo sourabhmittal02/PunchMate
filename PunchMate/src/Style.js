@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000', // Customize the background color
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50, // Adjust the button height as needed
+    height: 40, // Adjust the button height as needed
   },
   checkoutButtonText: {
     color: 'white', // Customize the text color

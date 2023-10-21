@@ -18,7 +18,7 @@ export default class RestaurantDetail extends Component {
             Login: '',
             RestImg: 'https://punchmateblobstorageac.blob.core.windows.net/punchmateappimg/nophoto.jpg',
             RestaurantID: '',
-            // ProductLIst: [],
+            OrderCount: '',
             OfferList: [
                 // { offerDetail: 'Buy 4 Get 1 Free', offerID: 1 },
                 // { offerDetail: 'Buy 2 Get 1 Free', offerID: 2},
@@ -31,11 +31,13 @@ export default class RestaurantDetail extends Component {
             showCheckoutButton: false,
         }
     }
-    componentDidMount() {
+    async componentDidMount() {
         this.setState({ RestImg: this.props.route.params.img })
         this.setState({ RestaurantID: this.props.route.params.regID })
+
         // this.GetProductLIst(this.props.route.params.regID);
         this._GetOfferList();
+        this._GetCount();
     }
     _GetToken = async () => {
         let Body = {
@@ -82,6 +84,39 @@ export default class RestaurantDetail extends Component {
 
             }
         })
+    }
+    _GetCount = async () => {
+        this._GetToken();
+        let token = "Bearer " + await AsyncStorage.getItem('accessToken');
+        let body = {
+            "userID": await AsyncStorage.getItem('UserId'),
+            "restaurant_ID":this.state.RestaurantID,
+        }
+        fetch(global.URL + "RMS/OrderCOunt", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token,
+                "platform": Platform.OS
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        }).then(response => response.text()).then(async responseText => {
+            try {
+                var respObject = JSON.parse(responseText);
+                console.log("COUNT=>", respObject);
+                this.setState({ OrderCount: respObject.response });
+            } catch (error) {
+
+            }
+        })
+    }
+    _UpdateCount(flag) {
+        if (flag == 1) {
+            this.setState({ OrderCount: this.state.OrderCount + 1 })
+        } else {
+            this.setState({ OrderCount: this.state.OrderCount - 1 })
+        }
     }
     _GetProductLIst = async (offerId) => {
         let jsonList = [];
@@ -159,28 +194,48 @@ export default class RestaurantDetail extends Component {
     // Function to increase the quantity of an item
     increaseQuantity = (offerID, productID, productName, rate) => {
         // console.log("==========OfferID:", offerID, "ProductID:", productID);
-        // Check if the product is already in the selectedProducts list
-        const existingProductIndex = this.state.selectedProducts.findIndex(
-            (product) => product.offerID === offerID && product.productID === productID
-        );
-
-        if (existingProductIndex !== -1) {
-            // If the product exists, update its quantity
-            const updatedSelectedProducts = [...this.state.selectedProducts];
-            updatedSelectedProducts[existingProductIndex].quantity++;
-            this.setState({ selectedProducts: updatedSelectedProducts });
-        } else {
-            // If the product doesn't exist, add it to the list
+        let totalQuantity = 0;
+        for (const item of this.state.selectedProducts) {
+            totalQuantity += item.quantity;
+        }
+        const totalCount = this.state.OrderCount + totalQuantity;
+        console.log("Count==>", this.state.OrderCount,"TOtal==>", totalCount,"totalQty==>", totalQuantity);
+        if ( totalCount == 4) {
+            console.log("Count2==>", totalCount);
             const newProduct = {
                 offerID,
                 productID,
                 productName,
-                rate,
+                rate: 0,
                 quantity: 1,
             };
             this.setState((prevState) => ({
                 selectedProducts: [...prevState.selectedProducts, newProduct],
             }));
+        } else {
+            // Check if the product is already in the selectedProducts list
+            const existingProductIndex = this.state.selectedProducts.findIndex(
+                (product) => product.offerID === offerID && product.productID === productID && product.rate!==0
+            );
+
+            if (existingProductIndex !== -1) {
+                // If the product exists, update its quantity
+                const updatedSelectedProducts = [...this.state.selectedProducts];
+                updatedSelectedProducts[existingProductIndex].quantity++;
+                this.setState({ selectedProducts: updatedSelectedProducts });
+            } else {
+                // If the product doesn't exist, add it to the list
+                const newProduct = {
+                    offerID,
+                    productID,
+                    productName,
+                    rate,
+                    quantity: 1,
+                };
+                this.setState((prevState) => ({
+                    selectedProducts: [...prevState.selectedProducts, newProduct],
+                }));
+            }
         }
         this.setState({ showCheckoutButton: true, });
         console.log(this.state.selectedProducts);
@@ -224,7 +279,6 @@ export default class RestaurantDetail extends Component {
                 this.setState({ selectedProducts: updatedSelectedProducts });
             }
         }
-
         // Update the quantity of the selected product in productList
         this.setState((prevState) => {
             const updatedProductList = { ...prevState.productList };
@@ -310,21 +364,59 @@ export default class RestaurantDetail extends Component {
     handleCheckout = async () => {
         const jsonList = JSON.stringify(this.state.selectedProducts);
         await AsyncStorage.setItem('ProductList', jsonList);
-        this.props.navigation.navigate('Cart', { name: 'Cart', img: this.state.RestImg })
+        this.props.navigation.navigate('Cart', { name: 'Cart', img: this.state.RestImg,RestId: this.state.RestaurantID })
     }
+    renderStars = (orderCount) => {
+        const stars = [];
+        var flag = false;
+        if (orderCount == 5) {
+            orderCount--;
+            flag = true;
+        }
+        for (let i = 0; i < orderCount; i++) {
+            stars.push(
+                <View key={i}>
+                    <Image style={styles.StarImg} source={require('./images/starfill.png')} />
+                </View>
+            );
+        }
+        const blankCount = 4 - orderCount;
+        for (let i = 0; i < blankCount; i++) {
+            stars.push(
+                <View key={i + blankCount}>
+                    <Image style={styles.StarImg} source={require('./images/star.png')} />
+                </View>
+            );
+        }
+        if (flag == false) {
+            stars.push(
+                <View key={8}>
+                    <Image style={styles.StarImg} source={require('./images/starfree.png')} />
+                </View>
+            );
+        } else {
+            stars.push(
+                <View key={9}>
+                    <Image style={styles.StarImg} source={require('./images/starfreefill.png')} />
+                </View>
+            );
+        }
+        return stars;
+    };
     render() {
         const totalQuantity = this.state.selectedProducts.reduce((total, product) => total + product.quantity, 0);
         const { showCheckoutButton } = this.state;
+        const stars = this.renderStars(this.state.OrderCount);
         return (
             <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
                 <View>
-                    <Image source={{ "uri": this.state.RestImg.toString() }} style={[styles.itemImage, { width: SCREEN_WIDTH, height: 180 }]} />
+                    <Image source={{ "uri": this.state.RestImg.toString() }} style={[styles.itemImage, { width: SCREEN_WIDTH, height: 160 }]} />
                     <View style={styles.headerOverImage}>
                         <View style={{ flex: 0.1 }}>
                             <TouchableOpacity onPress={() => this.GoBack()}>
                                 <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
                             </TouchableOpacity></View>
-                        <View style={{ flex: 1 }}><Text style={{ fontSize: 18, fontFamily:'Inter', color: 'white', }}>Punch Mate</Text></View>
+                        <View style={{ flex: 1 }}><Text style={{ fontSize: 18, fontFamily: 'Inter', color: 'white', }}>Punch Mate</Text></View>
                         <View style={{ flex: 0.1, alignItems: 'flex-end' }}><Image style={{ width: 25, height: 25 }} source={require('./images/location.png')} /></View>
                         {this.state.selectedProducts.length > 0 && (
                             <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
@@ -339,23 +431,9 @@ export default class RestaurantDetail extends Component {
                     </View>
                 </View >
                 <View style={{ flex: 1, alignSelf: 'center', margin: 10, flexDirection: 'row' }}>
-                    <View>
-                        <Image style={styles.StarImg} source={require('./images/starfill.png')} />
-                    </View>
-                    <View>
-                        <Image style={styles.StarImg} source={require('./images/star.png')} />
-                    </View>
-                    <View>
-                        <Image style={styles.StarImg} source={require('./images/star.png')} />
-                    </View>
-                    <View>
-                        <Image style={styles.StarImg} source={require('./images/star.png')} />
-                    </View>
-                    <View>
-                        <Image style={styles.StarImg} source={require('./images/starfree.png')} />
-                    </View>
+                    {stars}
                 </View>
-                <View style={{ margin: -5, marginTop: -10 }}>
+                <View style={{ margin: 0, marginTop: -10 }}>
                     <FlatList style={{ backgroundColor: '#fff', height: 500 }}
                         showsVerticalScrollIndicator
                         data={this.state.OfferList}

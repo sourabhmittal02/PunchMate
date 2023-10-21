@@ -301,8 +301,8 @@ export default class Dashboard extends Component {
           showsVerticalScrollIndicator
           data={this.state.horizontalData}
           keyExtractor={(item) => item.registrationID}
-          renderItem={({ item }) => (
-            <TouchableOpacity key={item.registrationID}
+          renderItem={({ item,index }) => (
+            <TouchableOpacity key={index}
               style={styles.horizontalListItem}
               onPress={() => this.GetOffer(item.registrationID, item.image)}
             >

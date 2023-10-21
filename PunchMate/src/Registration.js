@@ -115,15 +115,15 @@ export default class Registration extends Component {
         }
         const data = new FormData();
         const userInfo = {
-            FirstName: 'Ee',
-            LastName: 'Ee',
-            MobileNo: '9045800700',
-            MailID: 'Ee@ee.ee',
-            Address: 'Ee',
-            Area_Code: 'Ee',
-            Password: '11',
-            Lat: '28.6296459',
-            Long: '77.2316241',
+            FirstName: this.state.FirstName,
+            LastName: this.state.LastName,
+            MobileNo: this.state.MobileNo,
+            MailID: this.state.Email,
+            Address: this.state.Address,
+            Area_Code: this.state.AreaCode,
+            Password: this.state.Password,
+            Lat: this.state.Latitude,
+            Long: this.state.Longitude,
         };
 
         data.append('ImageFile', 

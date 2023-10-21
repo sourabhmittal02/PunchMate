@@ -13,7 +13,7 @@ const Splash = ({ navigation }) => {
     // Simulate a loading time or perform any necessary initialization here
     setTimeout(() => {
       // Navigate to your app's main screen or the screen you want to display after the splash screen
-      navigation.navigate('Login');
+      navigation.navigate('Main');
     }, 2000); // 2000 milliseconds (2 seconds) here is just an example
     this.requestLocationPermission();
   }, []);
