@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   },
   SideBarItem:{
     fontFamily:'Inter-Regular',
-    fontSize: 16, 
+    fontSize: 12, 
     color: '#fff', 
     marginLeft: 10
   },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#000',
     margin: 5,
-    marginTop: -20,
+    marginTop: 5,
   },
   distance: {
     fontFamily:'Inter-Regular',
@@ -207,8 +207,8 @@ const styles = StyleSheet.create({
   StarImg:{
     height:50,
     width:50,
-    marginLeft:15,
-    marginRight:15
+    marginLeft:10,
+    marginRight:10
   },
   cartIconContainer: {
     position: 'relative', // To position the item count over the icon
@@ -300,6 +300,13 @@ dropdown: {
   fontFamily:'Inter-Regular',
   flex: 2,
   color:'#000',
+},
+dropHeading:{
+  backgroundColor: '#fc6a57',//'rgba(0, 0, 0, 0.5)', 
+  borderRadius:15, 
+  width:screenWidth-10, 
+  margin:10, 
+  padding:15
 },
   borderRadii: {
     none: 0,

@@ -45,6 +45,9 @@ export default class Main extends Component {
     _Login(){
         this.props.navigation.navigate('Login', { name: 'Login' })
     }
+    MyFun(){
+        this.props.navigation.navigate('Map', { name: 'Map' })
+      }
     render() {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
@@ -83,7 +86,7 @@ export default class Main extends Component {
                         </TouchableOpacity>
                     </View>
                     <View style={{ flex: 1, borderWidth: 1, alignItems: 'center', backgroundColor: '#e5c961' }}>
-                        <TouchableOpacity style={stylesBar.btnBar}>
+                        <TouchableOpacity style={stylesBar.btnBar} onPress={()=>this.MyFun()}>
                             <Text style={stylesBar.buttonText}>Rewards</Text>
                         </TouchableOpacity>
                     </View>

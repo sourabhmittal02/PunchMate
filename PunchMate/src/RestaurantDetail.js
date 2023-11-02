@@ -8,6 +8,9 @@ import Nonveg from './images/nonveg.png';
 import Veg from './images/veg.png';
 import NoAlcohol from './images/noalcohol.png';
 import Alcohol from './images/alcohol.png';
+import fav from './images/fav.png';
+import addfav from './images/addfav.png';
+import search from './images/search.png';
 
 let SCREEN_WIDTH = Dimensions.get('window').width;
 let SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -18,12 +21,15 @@ export default class RestaurantDetail extends Component {
             Login: '',
             RestImg: 'https://punchmateblobstorageac.blob.core.windows.net/punchmateappimg/nophoto.jpg',
             RestaurantID: '',
+            RestFav: '',
             OrderCount: '',
+            UserId: '',
+            searchText: '',
             OfferList: [
                 // { offerDetail: 'Buy 4 Get 1 Free', offerID: 1 },
                 // { offerDetail: 'Buy 2 Get 1 Free', offerID: 2},
             ],
-            expandedOffers: {}, // Maintain a state for expanded offers
+            expandedOffers: { 1: true }, // Maintain a state for expanded offers
             productList: [],
             isExpanded: true,
             itemQuantity: 0,
@@ -33,9 +39,11 @@ export default class RestaurantDetail extends Component {
     }
     async componentDidMount() {
         this.setState({ RestImg: this.props.route.params.img })
+        this.setState({ RestFav: this.props.route.params.fav })
         this.setState({ RestaurantID: this.props.route.params.regID })
-
+        this.setState({ UserId: await AsyncStorage.getItem('UserId') })
         // this.GetProductLIst(this.props.route.params.regID);
+        this.fetchProductList(1)
         this._GetOfferList();
         this._GetCount();
     }
@@ -90,7 +98,7 @@ export default class RestaurantDetail extends Component {
         let token = "Bearer " + await AsyncStorage.getItem('accessToken');
         let body = {
             "userID": await AsyncStorage.getItem('UserId'),
-            "restaurant_ID":this.state.RestaurantID,
+            "restaurant_ID": this.state.RestaurantID,
         }
         fetch(global.URL + "RMS/OrderCOunt", {
             method: "POST",
@@ -143,7 +151,44 @@ export default class RestaurantDetail extends Component {
         });
         return jsonList;
     }
+    AddFav = async () => {
+        this._GetToken();
+        let token = "Bearer " + await AsyncStorage.getItem('accessToken');
+        let body = {
+            "restaurantRegID": this.state.RestaurantID,
+            "userID": this.state.UserId,
+        }
+        fetch(global.URL + "RMS/ManageFevouriteRestaurants", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token,
+                "platform": Platform.OS
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        }).then(response => response.text()).then(async responseText => {
+            try {
+                var respObject = JSON.parse(responseText);
+                if (respObject.response === 1) {
+                    if (this.state.RestFav === "True")
+                        this.setState({ RestFav: "FALSE" })
+                    else
+                        this.setState({ RestFav: "True" })
 
+                }
+            }
+            catch (error) {
+                this.setState({ isLoading: false });
+                console.log(error);
+                Alert.alert(global.TITLE, "No Resaturent Found");
+            }
+        }).catch(error => {
+            console.log(error);
+            this.setState({ isLoading: false });
+            Alert.alert(global.TITLE, " " + error);
+        });
+    }
     // Function to toggle the expanded state of an offer
     toggleOfferExpand = (offerID) => {
         console.log("OID=====>", offerID);
@@ -199,8 +244,8 @@ export default class RestaurantDetail extends Component {
             totalQuantity += item.quantity;
         }
         const totalCount = this.state.OrderCount + totalQuantity;
-        console.log("Count==>", this.state.OrderCount,"TOtal==>", totalCount,"totalQty==>", totalQuantity);
-        if ( totalCount == 4) {
+        console.log("Count==>", this.state.OrderCount, "TOtal==>", totalCount, "totalQty==>", totalQuantity);
+        if (totalCount == 4) {
             console.log("Count2==>", totalCount);
             const newProduct = {
                 offerID,
@@ -215,7 +260,7 @@ export default class RestaurantDetail extends Component {
         } else {
             // Check if the product is already in the selectedProducts list
             const existingProductIndex = this.state.selectedProducts.findIndex(
-                (product) => product.offerID === offerID && product.productID === productID && product.rate!==0
+                (product) => product.offerID === offerID && product.productID === productID && product.rate !== 0
             );
 
             if (existingProductIndex !== -1) {
@@ -304,10 +349,30 @@ export default class RestaurantDetail extends Component {
         const { expandedOffers, productList } = this.state;
         const isExpanded = expandedOffers[item.offerID];
         const products = productList[item.offerID];
+        // Check if products is defined
+        if (typeof products === 'undefined') {
+            return null; // Return null or an empty view when products is undefined
+        }
 
+        // Filter products based on the search text
+        const filteredProducts = products.filter(product => {
+            return product.pName.toLowerCase().includes(this.state.searchText.toLowerCase());
+        });
         console.log(`OfferID: ${item.offerID}, Expanded: ${isExpanded}, List: ${products}`);
         return (
             <View>
+                <View style={[styles.searchContainer, { flex: 4, margin: 10 }]}>
+                    <Image
+                        source={search}
+                        style={styles.searchIcon}
+                    />
+                    <TextInput
+                        style={[{ color: '#000', flex: 1, paddingVertical: 8, paddingHorizontal: 5, fontFamily: 'Inter-Regular' }]}
+                        placeholder="Search Products"
+                        placeholderTextColor="#000"
+                        onChangeText={(txt) => { this.setState({ searchText: txt }) }}
+                    />
+                </View>
                 <TouchableOpacity style={styles.BtnTab2} onPress={() => this.toggleOfferExpand(item.offerID)}>
                     <View style={{ flexDirection: 'row' }}>
                         <View style={{ flex: 3, alignItems: 'center' }}>
@@ -319,11 +384,11 @@ export default class RestaurantDetail extends Component {
                         )}</View>
                     </View>
                 </TouchableOpacity>
-                {isExpanded && products && (
+                {isExpanded && filteredProducts && (
                     <FlatList
-                        data={products}
+                        data={filteredProducts}
                         renderItem={({ item: product }) => (
-                            <View style={{ margin: 10, flexDirection: 'row' }}>
+                            <View key={products.pid} style={{ margin: 10, flexDirection: 'row' }}>
                                 <View style={{ flex: 2.5 }}>
                                     <View style={{ flexDirection: 'row' }}>
                                         {product.is_Alcoholic ? (
@@ -364,7 +429,7 @@ export default class RestaurantDetail extends Component {
     handleCheckout = async () => {
         const jsonList = JSON.stringify(this.state.selectedProducts);
         await AsyncStorage.setItem('ProductList', jsonList);
-        this.props.navigation.navigate('Cart', { name: 'Cart', img: this.state.RestImg,RestId: this.state.RestaurantID })
+        this.props.navigation.navigate('Cart', { name: 'Cart', img: this.state.RestImg, RestId: this.state.RestaurantID })
     }
     renderStars = (orderCount) => {
         const stars = [];
@@ -417,6 +482,16 @@ export default class RestaurantDetail extends Component {
                                 <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
                             </TouchableOpacity></View>
                         <View style={{ flex: 1 }}><Text style={{ fontSize: 18, fontFamily: 'Inter', color: 'white', }}>Punch Mate</Text></View>
+                        <View style={{ flex: 0.2, alignItems: 'flex-end' }}>
+                            <TouchableOpacity onPress={() => this.AddFav()}>
+                                {this.state.RestFav === "True" &&
+                                    <Image source={fav} style={{ height: 25, width: 25 }} />
+                                }
+                                {this.state.RestFav === "FALSE" &&
+                                    <Image source={addfav} style={{ height: 25, width: 25 }} />
+                                }
+                            </TouchableOpacity>
+                        </View>
                         <View style={{ flex: 0.1, alignItems: 'flex-end' }}><Image style={{ width: 25, height: 25 }} source={require('./images/location.png')} /></View>
                         {this.state.selectedProducts.length > 0 && (
                             <View style={{ flex: 0.1, alignItems: 'flex-end' }}>

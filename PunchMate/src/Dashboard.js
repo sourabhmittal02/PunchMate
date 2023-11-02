@@ -3,10 +3,12 @@ import { ImageBackground, PanResponder, Animated, BackHandler, FlatList, Dimensi
 import styles from './Style'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import search from './images/search.png';
-import help from './images/help.png';
+import order from './images/order.png';
 import getintouch from './images/mail2.png';
 import MenuIcon from './images/menu.png';
 import account from './images/account.png';
+import fav from './images/fav.png';
+import addfav from './images/addfav.png';
 import BottomBar from './BottomBar';
 import { Dropdown } from 'react-native-element-dropdown';
 import { HelperText } from 'react-native-paper';
@@ -23,6 +25,7 @@ export default class Dashboard extends Component {
       Profile: 'https://punchmateblobstorageac.blob.core.windows.net/punchmateappimg/nophoto.jpg',
       showPopup: false,
       showMenu: false,
+      UserId: '',
       menuVisible: false,
       RangeList: [{ label: '2 Kms', value: '2' }, { label: '4 Kms', value: '4' },
       { label: '6 Kms', value: '6' }, { label: '8 Kms', value: '8' }, { label: 'All', value: 'All' },
@@ -121,8 +124,10 @@ export default class Dashboard extends Component {
     }).then(response => response.text()).then(async responseText => {
       try {
         var respObject = JSON.parse(responseText);
+        this.setState({ UserId: respObject.id.toString() })
         await AsyncStorage.setItem('UserId', respObject.id.toString());
         this.setState({ Profile: respObject.image })
+        await AsyncStorage.setItem('Profile', respObject.image);
         console.log("Res1==>", respObject);
       }
       catch (error) {
@@ -132,24 +137,24 @@ export default class Dashboard extends Component {
     });
   }
   _SearchHotel = async (range) => {
-    console.log("Range=>",range);
+    console.log("Range=>", range);
     this._GetToken();
     let token = "Bearer " + await AsyncStorage.getItem('accessToken');
     let body;
-    if(range===''){
+    if (range === '') {
       body = {
         "current_Lat": "29.472561",//await AsyncStorage.getItem('Current_Latitude'),
         "current_Log": "77.707130",//await AsyncStorage.getItem('Current_Longitude'),
         "filterRange": "1000"
       }
-    }else{
+    } else {
       body = {
         "current_Lat": "29.472561",//await AsyncStorage.getItem('Current_Latitude'),
         "current_Log": "77.707130",//await AsyncStorage.getItem('Current_Longitude'),
         "filterRange": range
       }
     }
-    
+
     fetch(global.URL + "RMS/RestaurantList", {
       method: "POST",
       headers: {
@@ -203,8 +208,8 @@ export default class Dashboard extends Component {
     console.log("6");
     this.props.navigation.navigate('MyAccount', { name: 'MyAccount' })
   }
-  GetOffer(regID, restImg) {
-    this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg })
+  GetOffer(regID, restImg, restfav) {
+    this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg, fav: restfav })
   }
   _SearchList = async (hotel) => {
     this._GetToken();
@@ -244,6 +249,62 @@ export default class Dashboard extends Component {
     this.setState({ showPopup: !this.state.showPopup });
     this._SearchHotel(range);
   }
+  _orders = async () => {
+    this.setState({menuVisible: false});
+    this.props.navigation.navigate('OrderList', { name: 'OrderList' })
+  }
+  _Favrouite = async () => {
+    this.setState({menuVisible: false});
+    this.props.navigation.navigate('Favourite', { name: 'Favourite' })
+  }
+  _ChangePassword() {
+    this.props.navigation.navigate('Map', { name: 'Map' })
+  }
+  // AddFav = async (RegId, UserId) => {
+  //   this._GetToken();
+  //   let token = "Bearer " + await AsyncStorage.getItem('accessToken');
+  //   let body = {
+  //     "restaurantRegID": RegId,
+  //     "userID": UserId,
+  //   }
+  //   fetch(global.URL + "RMS/ManageFevouriteRestaurants", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "Authorization": token,
+  //       "platform": Platform.OS
+  //     },
+  //     body: JSON.stringify(body),
+  //     redirect: 'follow'
+  //   }).then(response => response.text()).then(async responseText => {
+  //     try {
+  //       var respObject = JSON.parse(responseText);
+  //       if (respObject.response === 1) {
+  //         const existingProductIndex = this.state.horizontalData.findIndex(
+  //           (product) => product.registrationID === RegId
+  //         );
+  //         console.log("FOUND==>", existingProductIndex, "  RegId=>", RegId);
+  //         if (existingProductIndex !== -1) {
+  //           const updatedSelectedProducts = [...this.state.horizontalData];
+  //           if (updatedSelectedProducts[existingProductIndex].favourite === "True")
+  //             updatedSelectedProducts[existingProductIndex].favourite = "FALSE";
+  //           else
+  //             updatedSelectedProducts[existingProductIndex].favourite = "True";
+  //           this.setState({ horizontalData: updatedSelectedProducts });
+  //         }
+  //       }
+  //     }
+  //     catch (error) {
+  //       this.setState({ isLoading: false });
+  //       console.log(error);
+  //       Alert.alert(global.TITLE, "No Resaturent Found");
+  //     }
+  //   }).catch(error => {
+  //     console.log(error);
+  //     this.setState({ isLoading: false });
+  //     Alert.alert(global.TITLE, " " + error);
+  //   });
+  // }
   render() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -274,15 +335,14 @@ export default class Dashboard extends Component {
               style={styles.searchIcon}
             />
             <TextInput
-              style={[{color:'#000', flex: 1, paddingVertical: 8, paddingHorizontal: 5,fontFamily:'Inter-Regular' }]}
+              style={[{ color: '#000', flex: 1, paddingVertical: 8, paddingHorizontal: 5, fontFamily: 'Inter-Regular' }]}
               placeholder="Search Restaurant"
               placeholderTextColor="#000"
-              value={this.state.MobileNo}
               onChangeText={(txt) => { this.setState({ search: txt }), this._SearchList(txt) }}
             />
           </View>
           <View style={{ flex: 1, margin: 10, marginTop: 15, flexDirection: 'row' }}>
-            <Text style={{ color: '#000',fontFamily:'Inter-Regular' }}>Filter</Text>
+            <Text style={{ color: '#000', fontFamily: 'Inter-Regular' }}>Filter</Text>
             <TouchableOpacity style={[]} onPress={() => this._ShowModel()} >
               <View style={{ flexDirection: 'row' }}>
                 <Image
@@ -301,24 +361,33 @@ export default class Dashboard extends Component {
           showsVerticalScrollIndicator
           data={this.state.horizontalData}
           keyExtractor={(item) => item.registrationID}
-          renderItem={({ item,index }) => (
-            <TouchableOpacity key={index}
-              style={styles.horizontalListItem}
-              onPress={() => this.GetOffer(item.registrationID, item.image)}
-            >
-              {/* <Image source={{"uri":item.image.toString()}} style={styles.itemImage} /> */}
-              <Text style={[styles.distance,{paddingRight:10}]}>
-                <Image
-                  source={require('./images/location.png')} // Replace with the actual icon source
-                  style={styles.icon}
-                />
-                {item.distance !== undefined ? item.distance.toFixed(2) : ''}
-              </Text>
-              <Text style={styles.itemName}>{item.restaurentName}</Text>
-              <Text style={styles.address}>{item.address}</Text>
-              <Text style={styles.address}>5:00 am-5:00 am</Text>
-              <Text style={styles.address}>DRIVE THRU</Text>
-            </TouchableOpacity>
+          renderItem={({ item, index }) => (
+            <View style={[styles.horizontalListItem, { flexDirection: 'row' }]}>
+              <View style={{ flex: 2 }}>
+                <TouchableOpacity key={index} onPress={() => this.GetOffer(item.registrationID, item.image, item.favourite)} >
+                  <Text style={styles.itemName}>{item.restaurentName}</Text>
+                  <Text style={styles.address}>{item.address}</Text>
+                  <Text style={styles.address}>5:00 am-5:00 am</Text>
+                  <Text style={styles.address}>DRIVE THRU</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ margin: 10 }}>
+                  <Image
+                    source={require('./images/location.png')} // Replace with the actual icon source
+                  />
+                  {item.distance !== undefined ? item.distance.toFixed(2) : ''}
+                </Text>
+                {/* <TouchableOpacity key={index} onPress={() => this.AddFav(item.registrationID, this.state.UserId)}>
+                  {item.favourite === "FALSE" &&
+                    <Image source={addfav} style={{ height: 25, width: 25, margin: 15 }} />
+                  }
+                  {item.favourite === "True" &&
+                    <Image source={fav} style={{ height: 25, width: 25, margin: 15 }} />
+                  }
+                </TouchableOpacity> */}
+              </View>
+            </View>
           )}
         />
         <BottomBar onHomePress={() => this.MyHome()} onAccountPress={() => this.MyAccount()} onFavPress={() => this.MyFav()} />
@@ -342,16 +411,16 @@ export default class Dashboard extends Component {
                 <Text style={styles.SideBarItem}>My Account</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.BtnLink]} onPress={() => this._ChangePassword()} >
+            <TouchableOpacity style={[styles.BtnLink]} onPress={() => this._orders()} >
               <View style={{ flexDirection: 'row', margin: 10 }}>
-                <Image style={{ width: 25, height: 25, alignSelf: 'center' }} source={help} />
-                <Text style={styles.SideBarItem}>Help</Text>
+                <Image style={{ width: 25, height: 25, alignSelf: 'center' }} source={order} />
+                <Text style={styles.SideBarItem}>Order(s)</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.BtnLink]} onPress={() => this._ChangePassword()} >
+            <TouchableOpacity style={[styles.BtnLink]} onPress={() => this._Favrouite()} >
               <View style={{ flexDirection: 'row', margin: 10 }}>
-                <Image style={{ width: 25, height: 25, alignSelf: 'center' }} source={getintouch} />
-                <Text style={styles.SideBarItem}>Get In Touch</Text>
+                <Image style={{ width: 25, height: 25, alignSelf: 'center' }} source={fav} />
+                <Text style={styles.SideBarItem}>Favrouite</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.BtnLink]} onPress={() => this._ChangePassword()} >
@@ -395,17 +464,17 @@ export default class Dashboard extends Component {
           <View style={[styles.popup]}>
             <View style={{ flexDirection: 'row' }}>
               <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ fontSize: 18, color: '#000',fontFamily:'Inter-Bold' }}>Range</Text>
+                <Text style={{ fontSize: 18, color: '#000', fontFamily: 'Inter-Bold' }}>Range</Text>
               </View>
               <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
                 <TouchableOpacity onPress={() => this._ShowModel()}>
-                  <Text style={{ fontSize: 20, color: '#fc6a57',fontFamily:'Inter-Bold', }}>X</Text>
+                  <Text style={{ fontSize: 20, color: '#fc6a57', fontFamily: 'Inter-Bold', }}>X</Text>
                 </TouchableOpacity>
               </View>
             </View>
             <View style={{ width: '95%' }}>
               <Dropdown
-                style={[styles.dropdown, this.state.isFocus && {color:'#000', borderColor: 'blue' }]}
+                style={[styles.dropdown, this.state.isFocus && { color: '#000', borderColor: 'blue' }]}
                 itemTextStyle={styles.dropdownText}
                 placeholderStyle={styles.placeholderStyle}
                 selectedTextStyle={styles.selectedTextStyle}

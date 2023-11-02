@@ -12,10 +12,12 @@ import ValidatePin from './src/ValidatePin';
 import Registration from './src/Registration';
 import BottomBar from './src/BottomBar';
 import MyAccount from './src/MyAccount';
+import OrderList from './src/OrderList';
 import RestaurantDetail from './src/RestaurantDetail';
 import Cart from './src/Cart';
 import Map from './src/Map';
 import QRCodes from './src/QRCodes';
+import Favourite from './src/Favourite';
 const Stack = createNativeStackNavigator();
 function App() {
   global.URL = "https://punchmate01.azurewebsites.net/";
@@ -34,8 +36,10 @@ function App() {
           <Stack.Screen name="Dashboard" component={Dashboard} />         
           <Stack.Screen name="BottomBar" component={BottomBar} />         
           <Stack.Screen name="MyAccount" component={MyAccount} />         
+          <Stack.Screen name="OrderList" component={OrderList} />         
           <Stack.Screen name="RestaurantDetail" component={RestaurantDetail} />         
           <Stack.Screen name="Cart" component={Cart} />         
+          <Stack.Screen name="Favourite" component={Favourite} />         
           <Stack.Screen name="QRCodes" component={QRCodes} />         
           <Stack.Screen name="Map" component={Map} />         
         </Stack.Navigator>
