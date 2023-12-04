@@ -9,6 +9,22 @@ const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    padding: 10,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop:100
+  },
+  overlayText: {
+    fontSize: 16,
+    color: 'black',
+  },
   contentContainer: {
     fontFamily:'Inter-Regular',
     paddingLeft: 5,
@@ -175,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 15,
-    width: screenWidth - 85,
+    width: screenWidth - 50,
     borderWidth: 1,
     borderColor: '#092D21'
   },
@@ -230,7 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', // Customize the font weight
   },
   checkoutButton: {
-    top: -60,
+    top: -50,
     backgroundColor: '#000', // Customize the background color
     alignItems: 'center',
     justifyContent: 'center',

@@ -3,6 +3,9 @@ import { ImageBackground, BackHandler, PermissionsAndroid, Dimensions, SafeAreaV
 import styles from './Style'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
+import QR from './images/qrcode.png';
+import logo from './images/logo.png';
+import QRCode from 'react-native-qrcode-svg';
 
 let SCREEN_WIDTH = Dimensions.get('window').width;
 let SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -12,10 +15,12 @@ export default class OrderList extends Component {
     this.state = {
       UserId: '',
       R_Name: '',
+      OrderId: '1',
       OrderList: [],
       OrderDetail: [],
       isLoading: false,
       showPopup: false,
+      showQR: false,
       Profile: 'https://punchmateblobstorageac.blob.core.windows.net/punchmateappimg/nophoto.jpg',
     }
   }
@@ -132,7 +137,16 @@ export default class OrderList extends Component {
   Close() {
     this.setState({ showPopup: !this.state.showPopup });
   }
+  CloseQR() {
+    this.setState({ showQR: !this.state.showQR });
+  }
+  GenQRCode(OID,RestId) {
+    var orderID=RestId+","+this.state.UserId+","+OID;
+    this.setState({ OrderId: orderID });
+    this.setState({ showQR: !this.state.showQR });
+  }
   render() {
+    const {OrderId} = this.state;
     return (
       <SafeAreaView>
         <View>
@@ -163,8 +177,13 @@ export default class OrderList extends Component {
                   <Text style={styles.itemName}>{item.restaurentName}</Text>
                   <Text style={styles.address}>Date: {moment(item.order_Date).format("MMM DD, yyyy")}</Text>
                   <View style={{ flexDirection: 'row' }}>
-                    <Text style={[styles.address]}>Status: </Text><Text style={{color:'#000',fontFamily:'Inter-Bold'}}>{item.orderStatus}</Text>
+                    <Text style={[styles.address]}>Status: </Text><Text style={{ color: '#000', fontFamily: 'Inter-Bold' }}>{item.orderStatus}</Text>
                   </View>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flex: 0.5, marginTop: 20 }}>
+                <TouchableOpacity onPress={() => this.GenQRCode(item.order_ID,item.registrationID)}>
+                  <Image source={QR} style={{ height: 25, width: 25 }} />
                 </TouchableOpacity>
               </View>
               <View style={{ flex: 1 }}>
@@ -209,6 +228,31 @@ export default class OrderList extends Component {
                     </View>
                   </View>
                 )}
+              />
+            </View>
+          </View>
+        </Modal>
+        {/* QRCode Model */}
+        <Modal visible={this.state.showQR} transparent={true} animationType='fade' onRequestClose={this.Close}>
+          <View style={[styles.popup, { flexDirection: 'column' }]}>
+            <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row' }}>
+              <View style={{ flex: 4, alignItems:'center' }}>
+                <Text style={{ fontSize: 16, color: '#000', fontFamily: 'Inter-Bold' }}>QR Code {OrderId}</Text>
+              </View>
+              <View style={{ flex: 0.3 }}>
+                <TouchableOpacity onPress={() => this.CloseQR()}>
+                  <Text style={{ fontSize: 20, color: '#fc6a57', fontFamily: 'Inter-Bold', }}>X</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={{ flex: 1, padding: 10, height: 300, alignItems: 'center', margin: 10, backgroundColor: '#fff' }}>
+              <QRCode
+                value={OrderId.toString()}
+                logo={logo}
+                logoSize={80}
+                logoBackgroundColor='transparent'
+                linearGradient={true}
+                size={280}
               />
             </View>
           </View>

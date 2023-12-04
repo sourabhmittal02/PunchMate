@@ -38,7 +38,7 @@ export default class ValidatePin extends Component {
             }).then(response => response.text()).then(async responseText => {
                 try {
                     var respObject = JSON.parse(responseText);
-                    console.log(respObject);
+                    console.log("Validate REs==>",respObject);
                     if (respObject!=-1) {
                         // this.setState({ isLoading: false });
                         await AsyncStorage.setItem('firstName', respObject.firstName);

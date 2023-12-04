@@ -3,7 +3,7 @@ import { Animated, FlatList, Dimensions, SafeAreaView, Alert, ActivityIndicator,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import moment from 'moment';
-import Nonveg from './images/nonveg.png';
+import logo from './images/logo.png';
 import styles from './Style'
 
 export default class QRCodes extends Component {
@@ -16,6 +16,7 @@ export default class QRCodes extends Component {
     }
     componentDidMount = async () => {
         this.setState({ OrderId: this.props.route.params.orderID })
+        // this.setState({ UserId: await AsyncStorage.getItem('mobile') })
         this.setState({ Name: await AsyncStorage.getItem('firstName') })
     }
     render() {
@@ -31,7 +32,7 @@ export default class QRCodes extends Component {
                     <View style={{padding:10,height:350, alignItems: 'center',margin:10, backgroundColor:'#fff' }}>
                         <QRCode 
                             value={this.props.route.params.orderID}
-                            logo={Nonveg}
+                            logo={logo}
                             logoBackgroundColor='green'
                             linearGradient={true}
                             size={330}

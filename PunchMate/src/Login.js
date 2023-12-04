@@ -20,7 +20,7 @@ export default class Login extends Component {
         }
     }
     async componentDidMount() {
-        let user = await AsyncStorage.getItem('uname');
+        let user = await AsyncStorage.getItem('firstName');
         if (user !== null) {
             this.props.navigation.navigate('Dashboard', { name: 'Dashboard' })
         }
@@ -35,7 +35,9 @@ export default class Login extends Component {
             this.setState({ activeButton: 'button2' });
         }
     }
-    GetCustomerLogin() {
+    async GetCustomerLogin() {
+        // For Testing
+        await AsyncStorage.removeItem('ProductList');
         if (this.state.MobileNo == "" || this.state.MobileNo == null) {
             Alert.alert(global.TITLE, "Mobile  No. Can't Be Left Empty");
         } else {
@@ -58,12 +60,12 @@ export default class Login extends Component {
                     // console.log(AsyncStorage.getItem('Current_Latitude'));
                     // console.log(AsyncStorage.getItem('Current_Longitude'));
                     await AsyncStorage.setItem('mobile', this.state.MobileNo);
-                    if (respObject.response==1) {
+                    if (respObject.response == 1) {
                         this.setState({ isLoading: false });
                         this.props.navigation.navigate('ValidatePin', { name: 'ValidatePin' })
-                    }else if (respObject.response===0) {
+                    } else if (respObject.response === 0) {
                         this.props.navigation.navigate('Registration', { name: 'Registration' })
-                    }else {
+                    } else {
                         this.setState({ isLoading: false });
                         Alert.alert(global.TITLE, "Invalid Mobile Number")
                     }
@@ -82,49 +84,49 @@ export default class Login extends Component {
             });
         }
     }
-    GetResturantLogin() {
-        let body = {
-            "loginId": this.state.RestaurantId,
-            "password": this.state.RestaurantPass,
-        }
-        this.setState({ isLoading: true })
-        fetch(global.URL + "Login/RestaurantLogin/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "platform": Platform.OS
-            },
-            body: JSON.stringify(body),
-            redirect: 'follow'
-        }).then(response => response.text()).then(async responseText => {
-            try {
-                var respObject = JSON.parse(responseText);
-                console.log(respObject);
-                if (respObject.registrationID !== null) {
-                    this.setState({ EMP_NAME: respObject.restaurentName.toString() });
-                    await AsyncStorage.setItem('uname', this.state.RestaurantId);
-                    await AsyncStorage.setItem('pass', this.state.RestaurantPass);
-                    await AsyncStorage.setItem('Token', respObject.accessToken);
-                    this.setState({ isLoading: false });
-                    this.props.navigation.navigate('Dashboard', { name: 'Dashboard' })
-                } else {
-                    this.setState({ isLoading: false });
-                    Alert.alert(global.TITLE, "Invalid Restaurant Username or Password")
-                }
-                this.setState({ isLoading: false });
+    // GetResturantLogin() {
+    //     let body = {
+    //         "loginId": this.state.RestaurantId,
+    //         "password": this.state.RestaurantPass,
+    //     }
+    //     this.setState({ isLoading: true })
+    //     fetch(global.URL + "Login/RestaurantLogin/", {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             "platform": Platform.OS
+    //         },
+    //         body: JSON.stringify(body),
+    //         redirect: 'follow'
+    //     }).then(response => response.text()).then(async responseText => {
+    //         try {
+    //             var respObject = JSON.parse(responseText);
+    //             console.log(respObject);
+    //             if (respObject.registrationID !== null) {
+    //                 this.setState({ EMP_NAME: respObject.restaurentName.toString() });
+    //                 await AsyncStorage.setItem('uname', this.state.RestaurantId);
+    //                 await AsyncStorage.setItem('pass', this.state.RestaurantPass);
+    //                 await AsyncStorage.setItem('Token', respObject.accessToken);
+    //                 this.setState({ isLoading: false });
+    //                 this.props.navigation.navigate('Dashboard', { name: 'Dashboard' })
+    //             } else {
+    //                 this.setState({ isLoading: false });
+    //                 Alert.alert(global.TITLE, "Invalid Restaurant Username or Password")
+    //             }
+    //             this.setState({ isLoading: false });
 
-            }
-            catch (error) {
-                this.setState({ isLoading: false });
-                console.log(error);
-                Alert.alert(global.TITLE, "Invalid Restaurant Username or Password");
-            }
-        }).catch(error => {
-            console.log(error);
-            this.setState({ isLoading: false });
-            Alert.alert(global.TITLE, " " + error);
-        });
-    }
+    //         }
+    //         catch (error) {
+    //             this.setState({ isLoading: false });
+    //             console.log(error);
+    //             Alert.alert(global.TITLE, "Invalid Restaurant Username or Password");
+    //         }
+    //     }).catch(error => {
+    //         console.log(error);
+    //         this.setState({ isLoading: false });
+    //         Alert.alert(global.TITLE, " " + error);
+    //     });
+    // }
     render() {
         return (
             <SafeAreaView contentContainerStyle={[styles.contentContainer]}>
@@ -137,23 +139,14 @@ export default class Login extends Component {
                     </View>
                     {/* 092D21 */}
                     <View style={[{ margin: 0, width: screenWidth, marginTop: -50, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: '#000', height: screenHeight - 340 }]}>
-                        <Text style={{ margin: 30, color: '#fff', fontSize: 24,fontFamily:'Inter-Bold' }}>
+                        <Text style={{ margin: 30, color: '#fff', fontSize: 24, fontFamily: 'Inter-Bold' }}>
                             Get food you want
                         </Text>
-                        <Text style={{ marginTop: -20, margin: 30, color: '#fff', fontSize: 14,fontFamily:'Inter' }}>
+                        <Text style={{ marginTop: -20, margin: 30, color: '#fff', fontSize: 14, fontFamily: 'Inter' }}>
                             Please enter your phone number
                         </Text>
-                        {/* <View style={{ flexDirection: 'row' }}>
-                            <TouchableOpacity style={[styles.BtnTab1, this.state.activeButton === 'button1' ? { backgroundColor: '#5d83d4' } : { backgroundColor: '#3b5998' }]} onPress={() => this.GetCustomer()} >
-                                <Text style={[styles.BtnTabText]}>Customer Login</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.BtnTab2, this.state.activeButton === 'button2' ? { backgroundColor: '#5d83d4' } : { backgroundColor: '#3b5998' }]} onPress={() => this.GetRestaurent()}>
-                                <Text style={[styles.BtnTabText]}>Restaurant Login</Text>
-                            </TouchableOpacity>
-                        </View> */}
-                        {/* {this.state.activeButton === 'button1' ? */}
                         <View>
-                            <TextInput style={{ margin: 10, borderRadius: 10, backgroundColor: '#fff', fontSize: 18, color:'#000', fontFamily:'Inter-Regular' }}
+                            <TextInput style={{ margin: 10, borderRadius: 10, backgroundColor: '#fff', fontSize: 18, color: '#000', fontFamily: 'Inter-Regular' }}
                                 placeholder="Enter Phone Number"
                                 placeholderTextColor="#000"
                                 keyboardType='number-pad'

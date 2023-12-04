@@ -35,32 +35,17 @@ export default class RestaurantDetail extends Component {
             itemQuantity: 0,
             selectedProducts: [],
             showCheckoutButton: false,
-            LAT: '',
-            LONG: '',
         }
     }
     async componentDidMount() {
         this.setState({ RestImg: this.props.route.params.img })
         this.setState({ RestFav: this.props.route.params.fav })
         this.setState({ RestaurantID: this.props.route.params.regID })
-        this.setState({ LAT: this.props.route.params.lat })
-        this.setState({ LONG: this.props.route.params.long })
         this.setState({ UserId: await AsyncStorage.getItem('UserId') })
         // this.GetProductLIst(this.props.route.params.regID);
         this.fetchProductList(1)
         this._GetOfferList();
         this._GetCount();
-        //Check For Productlist is empty ot not
-        const productList = await AsyncStorage.getItem('ProductList');
-        console.log("productList=>", productList);
-        if (productList.length !== 0) {
-            console.log("====Yes====");
-            const plist = JSON.parse(await AsyncStorage.getItem('ProductList'));
-            this.setState({ selectedProducts: plist });
-        }
-    }
-    _ShowMap=async()=>{
-        this.props.navigation.navigate('Map', { lat: this.state.LAT.toString(), long: this.state.LONG.toString() })
     }
     _GetToken = async () => {
         let Body = {
@@ -268,7 +253,6 @@ export default class RestaurantDetail extends Component {
                 productName,
                 rate: 0,
                 quantity: 1,
-                restaurantID: this.state.RestaurantID
             };
             this.setState((prevState) => ({
                 selectedProducts: [...prevState.selectedProducts, newProduct],
@@ -276,7 +260,7 @@ export default class RestaurantDetail extends Component {
         } else {
             // Check if the product is already in the selectedProducts list
             const existingProductIndex = this.state.selectedProducts.findIndex(
-                (product) => product.offerID === offerID && product.productID === productID && product.rate !== 0 && product.restaurantID === this.state.RestaurantID
+                (product) => product.offerID === offerID && product.productID === productID && product.rate !== 0
             );
 
             if (existingProductIndex !== -1) {
@@ -292,7 +276,6 @@ export default class RestaurantDetail extends Component {
                     productName,
                     rate,
                     quantity: 1,
-                    restaurantID: this.state.RestaurantID
                 };
                 this.setState((prevState) => ({
                     selectedProducts: [...prevState.selectedProducts, newProduct],
@@ -325,7 +308,7 @@ export default class RestaurantDetail extends Component {
     decreaseQuantity = (offerID, productID) => {
         // Check if the product is already in the selectedProducts list
         const existingProductIndex = this.state.selectedProducts.findIndex(
-            (product) => product.offerID === offerID && product.productID === productID && product.restaurantID === this.state.RestaurantID
+            (product) => product.offerID === offerID && product.productID === productID
         );
 
         if (existingProductIndex !== -1) {
@@ -378,7 +361,7 @@ export default class RestaurantDetail extends Component {
         console.log(`OfferID: ${item.offerID}, Expanded: ${isExpanded}, List: ${products}`);
         return (
             <View>
-                <View style={[styles.searchContainer, { flex: 4, margin: 10, }]}>
+                <View style={[styles.searchContainer, { flex: 4, margin: 10 }]}>
                     <Image
                         source={search}
                         style={styles.searchIcon}
@@ -444,39 +427,8 @@ export default class RestaurantDetail extends Component {
         this.props.navigation.goBack();
     }
     handleCheckout = async () => {
-        //Getting Old List
-        const existingProductList = await AsyncStorage.getItem('ProductList');
-        let productList = [];
-        // If the existing ProductList is not null, parse it
-        if (existingProductList !== null) {
-            productList = JSON.parse(existingProductList);
-        }
-        // Check if each product in selectedProducts is already in the list
-        this.state.selectedProducts.forEach((newProduct) => {
-            const isProductExists = productList.some(
-                (existingProduct) =>
-                    existingProduct.offerID === newProduct.offerID &&
-                    existingProduct.productID === newProduct.productID &&
-                    existingProduct.productName === newProduct.productName &&
-                    existingProduct.rate === newProduct.rate &&
-                    existingProduct.quantity === newProduct.quantity &&
-                    existingProduct.restaurantID === newProduct.restaurantID
-            );
-
-            // If the product doesn't exist, add it to the list
-            if (!isProductExists) {
-                productList.push(newProduct);
-            }
-        });
-
-        // Convert the updated ProductList to a JSON string
-        const jsonList = JSON.stringify(productList);
-
-        // Update the ProductList in AsyncStorage
+        const jsonList = JSON.stringify(this.state.selectedProducts);
         await AsyncStorage.setItem('ProductList', jsonList);
-
-        // const jsonList = JSON.stringify(this.state.selectedProducts);
-        // await AsyncStorage.setItem('ProductList', jsonList);
         this.props.navigation.navigate('Cart', { name: 'Cart', img: this.state.RestImg, RestId: this.state.RestaurantID })
     }
     renderStars = (orderCount) => {
@@ -540,11 +492,7 @@ export default class RestaurantDetail extends Component {
                                 }
                             </TouchableOpacity>
                         </View>
-                        <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
-                            <TouchableOpacity onPress={()=>this._ShowMap()}>
-                                <Image style={{ width: 25, height: 25 }} source={require('./images/location.png')} />
-                            </TouchableOpacity>
-                        </View>
+                        <View style={{ flex: 0.1, alignItems: 'flex-end' }}><Image style={{ width: 25, height: 25 }} source={require('./images/location.png')} /></View>
                         {this.state.selectedProducts.length > 0 && (
                             <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
                                 <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.cartIconContainer}>
@@ -557,7 +505,7 @@ export default class RestaurantDetail extends Component {
                         )}
                     </View>
                 </View >
-                <View style={{ flex: 0.8, alignSelf: 'center', margin: 10, flexDirection: 'row' }}>
+                <View style={{ flex: 1, alignSelf: 'center', margin: 10, flexDirection: 'row' }}>
                     {stars}
                 </View>
                 <View style={{ margin: 0, marginTop: -10 }}>
@@ -579,7 +527,8 @@ export default class RestaurantDetail extends Component {
                         )}
                     /> */}
                     {showCheckoutButton && (
-                        <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.checkoutButton}>
+                        <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.checkoutButton}
+                        >
                             <Text style={styles.checkoutButtonText}>Checkout</Text>
                         </TouchableOpacity>
                     )}

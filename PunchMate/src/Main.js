@@ -1,7 +1,10 @@
 import React, { Component } from 'react'
 import { Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, Button, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native'
-import styles from './Style'
 import { Screen } from 'react-native-screens';
+import styles from './Style'
+import Slide1 from './images/slide1.png';
+import Slide2 from './images/slide2.png';
+import Slide3 from './images/slide3.png';
 
 const screenWidth = Dimensions.get('window').width;
 export default class Main extends Component {
@@ -27,7 +30,7 @@ export default class Main extends Component {
             if (this.state.scrollingEnabled) {
                 this.scrollContent();
             }
-        }, 2000); // Adjust the interval as needed
+        }, 3000); // Adjust the interval as needed
     };
 
     scrollContent = () => {
@@ -51,7 +54,7 @@ export default class Main extends Component {
     render() {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-                <View style={{ flex: 8, borderWidth: 1, }}>
+                <View style={{ flex: 8, }}>
                     <ScrollView
                         ref={(ref) => (this.scrollView = ref)}
                         horizontal
@@ -61,15 +64,19 @@ export default class Main extends Component {
                         }
                     >
                         {/* Add your content here */}
-                        <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightblue' }}>
+                        {/* <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightblue' }}>
                             Item 1
-                        </Text>
+                        </Text> 
                         <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightgreen' }}>
                             Item 2
                         </Text>
                         <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightcoral' }}>
                             Item 3
                         </Text>
+                        */}
+                        <Image style={{ width: screenWidth, height: 600 }} source={Slide1} />
+                        <Image style={{ width: screenWidth, height: 600 }} source={Slide2} />
+                        <Image style={{ width: screenWidth, height: 600 }} source={Slide3} />
                     </ScrollView>
                 </View>
                 <View style={{ flex: 0.8, marginTop: 20 }}>

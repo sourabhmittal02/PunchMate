@@ -22,7 +22,7 @@ export default class Cart extends Component {
         this.setState({ UserId: await AsyncStorage.getItem('UserId') })
         let Product = await AsyncStorage.getItem('ProductList');
         this.setState({ selectedProducts: JSON.parse(Product) });
-        console.log(this.state.selectedProducts);
+        console.log("IN CART=>",this.state.selectedProducts);
     }
     _GetToken = async () => {
         let Body = {
@@ -55,8 +55,9 @@ export default class Cart extends Component {
         this.props.navigation.goBack();
     }
     increaseQuantity(offerID, pid) {
+        const restaurantID = this.state.RestId;
         const existingProductIndex = this.state.selectedProducts.findIndex(
-            (product) => product.offerID === offerID && product.productID === pid
+            (product) => product.offerID === offerID && product.productID === pid && product.restaurantID === restaurantID
         );
         if (existingProductIndex !== -1) {
             // If the product exists, update its quantity
@@ -66,8 +67,9 @@ export default class Cart extends Component {
         }
     }
     decreaseQuantity(offerID, pid) {
+        const restaurantID = this.state.RestId;
         const existingProductIndex = this.state.selectedProducts.findIndex(
-            (product) => product.offerID === offerID && product.productID === pid
+            (product) => product.offerID === offerID && product.productID === pid && product.restaurantID === restaurantID
         );
         if (existingProductIndex !== -1) {
             // If the product exists, update its quantity
@@ -77,6 +79,8 @@ export default class Cart extends Component {
         }
     }
     _PlaceOrder = async () => {
+        //===>QR code mai OrderID, RestaurantID, UserID 
+        var orderID=this.state.RestId+","+this.state.UserId+",";
         this._GetToken();
         let token = "Bearer " + await AsyncStorage.getItem('accessToken');
         const ProductList = this.state.selectedProducts.map(item => ({
@@ -93,36 +97,47 @@ export default class Cart extends Component {
             "is_Finalized": false,
             "orderDetailsModels": ProductList
         }
-        console.log("Vody==>", body);
-        let Product = await AsyncStorage.getItem('ProductList');
-        console.log("1==>", Product);
-        AsyncStorage.removeItem('ProductList');
-        Product = await AsyncStorage.getItem('ProductList');
-        console.log("2==>", Product);
-        this.props.navigation.navigate('QRCodes', { orderID: "1" })
-        // fetch(global.URL+'RMS/CreateOrder',{
-        //     method:"POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         "Authorization": token,
-        //         "platform": Platform.OS
-        //     },
-        //     body: JSON.stringify(body),
-        //     redirect: 'follow'
-        // }).then(response => response.text()).then(async responseText => {
-        //     var respObject = JSON.parse(responseText);
-        //     var jsonList = respObject;
-        //     console.log(jsonList);
-        //     if(jsonList.response>0){
-        //         AsyncStorage.removeItem('ProductList');
-        //         this.props.navigation.navigate('QRCode', { orderID: jsonList.response })
-        //     }else{
-        //         Alert.alert("Punch Mate",jsonList.status);
-        //     }
-        // });
+        // console.log("Vody==>", body);
+        // let Product = await AsyncStorage.getItem('ProductList');
+        // console.log("1==>", Product);
+        // AsyncStorage.removeItem('ProductList');
+        // Product = await AsyncStorage.getItem('ProductList');
+        // console.log("2==>", Product);
+        // const updatedProductList = this.state.selectedProducts.filter(product => product.restaurantID !== this.state.RestId);
+        // this.setState({selectedProducts:updatedProductList})
+        // await AsyncStorage.setItem('ProductList', JSON.stringify(updatedProductList));
+        // console.log("3==>", AsyncStorage.getItem('ProductList'));
+        
+        fetch(global.URL+'RMS/CreateOrder',{
+            method:"POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token,
+                "platform": Platform.OS
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        }).then(response => response.text()).then(async responseText => {
+            var respObject = JSON.parse(responseText);
+            var jsonList = respObject;
+            console.log(jsonList);
+            if(jsonList.response>0){
+                orderID=orderID+jsonList.response.toString();
+                console.log(orderID);
+                //AsyncStorage.removeItem('ProductList');
+                // this.props.navigation.navigate('QRCode', { orderID: jsonList.response })
+            }else{
+                Alert.alert("Punch Mate",jsonList.status);
+            }
+        });
+        this.props.navigation.navigate('QRCodes', { orderID: orderID })
     }
     render() {
         const totalQuantity = this.state.selectedProducts.reduce((total, product) => total + (product.rate * product.quantity), 0);
+        const { selectedProducts, RestId } = this.state;
+        const filteredProducts = selectedProducts.filter(
+            (product) => product.restaurantID === RestId
+        );
         return (
             <SafeAreaView>
                 <View>
@@ -139,7 +154,8 @@ export default class Cart extends Component {
                     </View>
                     <View style={{ marginTop: 5, margin: 10, backgroundColor: '#fff', borderRadius: 10 }} >
                         <FlatList style={{ height: SCREEN_HEIGHT - 340 }}
-                            data={this.state.selectedProducts}
+                            // data={this.state.selectedProducts}
+                            data={filteredProducts}
                             renderItem={({ item }) => (
                                 <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBlockColor: '#000' }}>
                                     <View style={{ flex: 2 }}>

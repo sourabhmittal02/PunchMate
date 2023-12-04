@@ -87,6 +87,42 @@ export default class Favourite extends Component {
             Alert.alert(global.TITLE, " " + error);
         });
     }
+    _GetFavorite = async () => {
+        this._GetToken();
+        let token = "Bearer " + await AsyncStorage.getItem('accessToken');
+        let body = {
+            "current_Lat": await AsyncStorage.getItem('Current_Latitude'),
+            "current_Log": await AsyncStorage.getItem('Current_Longitude'),
+            "UserId": this.state.UserId
+        };
+        console.log(body);
+        fetch(global.URL + "RMS/FavouritehRestaurantList", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token,
+                "platform": Platform.OS
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        }).then(response => response.text()).then(async responseText => {
+            try {
+                var respObject = JSON.parse(responseText);
+                this.setState({ favoriteData: respObject })
+                this.setState({ isLoading: false })
+                console.log("Res3==>", this.state.favoriteData);
+            }
+            catch (error) {
+                this.setState({ isLoading: false });
+                console.log(error);
+                Alert.alert(global.TITLE, "No Resaturent Found");
+            }
+        }).catch(error => {
+            console.log(error);
+            this.setState({ isLoading: false });
+            Alert.alert(global.TITLE, " " + error);
+        });
+    }
     _Logout() {
 
     }
@@ -106,85 +142,108 @@ export default class Favourite extends Component {
         this.fetchDataFromServer(section);
     };
     fetchDataFromServer = (section) => {
-        const placeholderData = [
-            { id: 1, name: 'Item 1' },
-            { id: 2, name: 'Item 2' },
-            { id: 3, name: 'Item 3' },
-        ];
-
         if (section === 'frequentlyOrdered') {
-            this.setState({ frequentlyOrderedData: placeholderData });
+            this._GetFrequent(this.state.UserId);
         } else if (section === 'favorite') {
-            this.setState({ favoriteData: placeholderData });
+            this._GetFavorite();
         }
     };
+    GetOffer(regID, restImg, restfav) {
+        this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg, fav: restfav })
+      }
     render() {
         const { frequentlyOrderedExpanded, favoriteExpanded } = this.state;
         return (
             <SafeAreaView>
-                <View>
-                    <View style={{ height: 40, backgroundColor: "#000", flexDirection: "row", justifyContent: "center", alignItems: 'center' }}>
-                        <View style={{ flex: 1, margin: 10, flexDirection: 'row' }}>
-                            <View style={{ flex: 0.1 }}>
-                                <TouchableOpacity onPress={() => this.GoBack()}>
-                                    <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
-                                </TouchableOpacity>
+                <ScrollView>
+                    <View>
+                        <View style={{ height: 40, backgroundColor: "#000", flexDirection: "row", justifyContent: "center", alignItems: 'center' }}>
+                            <View style={{ flex: 1, margin: 10, flexDirection: 'row' }}>
+                                <View style={{ flex: 0.1 }}>
+                                    <TouchableOpacity onPress={() => this.GoBack()}>
+                                        <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <TouchableOpacity onPress={() => { this._Logout() }}>
+                                        <Image style={{ width: 30, height: 30, marginRight: 0, borderRadius: 30, marginRight: 10, resizeMode: 'contain' }} source={{ "uri": this.state.Profile.toString() }} />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={{ color: '#fff', fontSize: 18 }}>Favourite</Text>
                             </View>
-                            <View style={{ flex: 1 }}>
-                                <TouchableOpacity onPress={() => { this._Logout() }}>
-                                    <Image style={{ width: 30, height: 30, marginRight: 0, borderRadius: 30, marginRight: 10, resizeMode: 'contain' }} source={{ "uri": this.state.Profile.toString() }} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text style={{ color: '#fff', fontSize: 18 }}>Favourite</Text>
                         </View>
                     </View>
-                </View>
-                <View style={{ margin: 0, marginTop: 10, alignItems: 'center', }}>
-                    <TouchableOpacity style={[styles.dropHeading]} onPress={() => this.toggleSection('frequentlyOrdered')}>
-                        <View style={{ flexDirection: 'row' }}>
-                            <View style={{ flex: 3 }}>
-                                <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'Inter-Bold', }}>Frequently Ordered</Text>
+                    <View style={{ margin: 0, marginTop: 10, alignItems: 'center', }}>
+                        <TouchableOpacity style={[styles.dropHeading]} onPress={() => this.toggleSection('frequentlyOrdered')}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View style={{ flex: 3 }}>
+                                    <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'Inter-Bold', }}>Frequently Ordered</Text>
+                                </View>
+                                <View style={{ flex: 0.2 }}>
+                                    {frequentlyOrderedExpanded ? <Image style={{ width: 25, height: 25 }} source={AngleUp} /> : <Image style={{ width: 25, height: 25 }} source={AngleDown} />}
+                                </View>
                             </View>
-                            <View style={{ flex: 0.2 }}>
-                                {frequentlyOrderedExpanded ? <Image style={{ width: 25, height: 25 }} source={AngleUp} /> : <Image style={{ width: 25, height: 25 }} source={AngleDown} />}
+                        </TouchableOpacity>
+                        {frequentlyOrderedExpanded && (
+                            <View style={{ width: SCREEN_WIDTH - 10 }}>
+                                {this.state.frequentlyOrderedData.length === 0 ? (
+                                    <Text>Loading data...</Text>
+                                ) : (
+                                    this.state.frequentlyOrderedData.map((item, index) => (
+                                        <View key={index} style={{ flexDirection: 'row' }}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.itemName}>{item.restaurentName}</Text>
+                                                <Text style={styles.address}>{item.pname}</Text>
+                                                <Text style={styles.address}>${item.pRate}</Text>
+                                            </View>
+                                            <View>
+                                                <Image source={{ "uri": item.image.toString() }} style={{ margin: 10, height: 90, width: 90 }} />
+                                            </View>
+                                        </View>
+                                    ))
+                                )}
                             </View>
-                        </View>
-                    </TouchableOpacity>
-                    {frequentlyOrderedExpanded && (
-                        <View>
-                            {this.state.frequentlyOrderedData.length === 0 ? (
-                                <Text>Loading data...</Text>
-                            ) : (
-                                this.state.frequentlyOrderedData.map((item,index) => (
-                                    <Text style={{color:'#000'}} key={index}>{item.pname}</Text>
-                                ))
-                            )}
-                        </View>
-                    )}
+                        )}
 
-                    <TouchableOpacity style={[styles.dropHeading]} onPress={() => this.toggleSection('favorite')}>
-                        <View style={{ flexDirection: 'row' }}>
-                            <View style={{ flex: 3 }}>
-                                <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'Inter-Bold', }}>Favorite Resaturent</Text>
+                        <TouchableOpacity style={[styles.dropHeading]} onPress={() => this.toggleSection('favorite')}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View style={{ flex: 3 }}>
+                                    <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'Inter-Bold', }}>Favorite Resaturent</Text>
+                                </View>
+                                <View style={{ flex: 0.2 }}>
+                                    {favoriteExpanded ? <Image style={{ width: 25, height: 25 }} source={AngleUp} /> : <Image style={{ width: 25, height: 25 }} source={AngleDown} />}
+                                </View>
                             </View>
-                            <View style={{ flex: 0.2 }}>
-                            {favoriteExpanded ? <Image style={{ width: 25, height: 25 }} source={AngleUp} /> : <Image style={{ width: 25, height: 25 }} source={AngleDown} />}
-                            </View>
-                        </View>
-                    </TouchableOpacity>
+                        </TouchableOpacity>
 
-                    {favoriteExpanded && (
-                        <View>
-                            {this.state.favoriteData.length === 0 ? (
-                                <Text>Loading data...</Text>
-                            ) : (
-                                this.state.favoriteData.map((item) => (
-                                    <Text key={item.id}>{item.name}</Text>
-                                ))
-                            )}
-                        </View>
-                    )}
-                </View>
+                        {favoriteExpanded && (
+                            <View style={{ width: SCREEN_WIDTH - 10 }}>
+                                {this.state.favoriteData.length === 0 ? (
+                                    <Text>Loading data...</Text>
+                                ) : (
+                                    this.state.favoriteData.map((item, index) => (
+                                        <View key={index} style={{ flexDirection: 'row' }}>
+                                            <View style={{ flex: 1 }}>
+                                                <TouchableOpacity key={index} onPress={() => this.GetOffer(item.registrationID, item.image, item.favourite)} >
+                                                    <Text style={styles.itemName}>{item.restaurentName}</Text>
+                                                    <Text style={styles.address}>{item.address}</Text>
+                                                    <Text>
+                                                        <Image
+                                                            source={require('./images/location.png')} // Replace with the actual icon source
+                                                        />
+                                                        {item.distance !== undefined ? item.distance.toFixed(2) : ''}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            <View>
+                                                <Image source={{ "uri": item.image.toString() }} style={{ margin: 10, height: 90, width: 90 }} />
+                                            </View>
+                                        </View>
+                                    ))
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
                 <Modal
                     animationType="slide"
                     transparent={false}

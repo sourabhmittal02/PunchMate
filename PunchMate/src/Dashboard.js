@@ -208,8 +208,8 @@ export default class Dashboard extends Component {
     console.log("6");
     this.props.navigation.navigate('MyAccount', { name: 'MyAccount' })
   }
-  GetOffer(regID, restImg, restfav) {
-    this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg, fav: restfav })
+  GetOffer(regID, restImg, restfav, restlat, restlong) {
+    this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg, fav: restfav, lat: restlat, long: restlong })
   }
   _SearchList = async (hotel) => {
     this._GetToken();
@@ -250,11 +250,11 @@ export default class Dashboard extends Component {
     this._SearchHotel(range);
   }
   _orders = async () => {
-    this.setState({menuVisible: false});
+    this.setState({ menuVisible: false });
     this.props.navigation.navigate('OrderList', { name: 'OrderList' })
   }
   _Favrouite = async () => {
-    this.setState({menuVisible: false});
+    this.setState({ menuVisible: false });
     this.props.navigation.navigate('Favourite', { name: 'Favourite' })
   }
   _ChangePassword() {
@@ -362,9 +362,9 @@ export default class Dashboard extends Component {
           data={this.state.horizontalData}
           keyExtractor={(item) => item.registrationID}
           renderItem={({ item, index }) => (
-            <View style={[styles.horizontalListItem, { flexDirection: 'row' }]}>
+            <View key={index} style={[styles.horizontalListItem, { flexDirection: 'row' }]}>
               <View style={{ flex: 2 }}>
-                <TouchableOpacity key={index} onPress={() => this.GetOffer(item.registrationID, item.image, item.favourite)} >
+                <TouchableOpacity key={index} onPress={() => this.GetOffer(item.registrationID, item.image, item.favourite, item.lat, item.long)} >
                   <Text style={styles.itemName}>{item.restaurentName}</Text>
                   <Text style={styles.address}>{item.address}</Text>
                   <Text style={styles.address}>5:00 am-5:00 am</Text>
@@ -376,7 +376,7 @@ export default class Dashboard extends Component {
                   <Image
                     source={require('./images/location.png')} // Replace with the actual icon source
                   />
-                  {item.distance !== undefined ? item.distance.toFixed(2) : ''}
+                  {item.distance !== undefined ? item.distance.toFixed(2) : ''} Km
                 </Text>
                 {/* <TouchableOpacity key={index} onPress={() => this.AddFav(item.registrationID, this.state.UserId)}>
                   {item.favourite === "FALSE" &&
