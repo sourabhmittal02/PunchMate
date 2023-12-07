@@ -5,7 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import RNFetchBlob from "rn-fetch-blob";
 import DocumentPicker from 'react-native-document-picker';
-
+import SelectDropdown from 'react-native-select-dropdown'
+import Album from './images/album.png';
+import Camera from './images/camera.png';
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 let options = {
@@ -20,6 +22,24 @@ const fs = RNFetchBlob.fs;
 RNFetchBlob.config({
     fileCache: true
 })
+const Day = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+const Month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const Year = Array.from({ length: 60 }, (_, index) => (new Date().getFullYear() - index).toString());
+const Gender = ["Male", "Female"];
+const monthValueMapping = {
+    'January': '01',
+    'February': '02',
+    'March': '03',
+    'April': '04',
+    'May': '05',
+    'June': '06',
+    'July': '07',
+    'August': '08',
+    'September': '09',
+    'October': '10',
+    'November': '11',
+    'December': '12',
+};
 export default class Registration extends Component {
     constructor(props) {
         super(props);
@@ -33,10 +53,16 @@ export default class Registration extends Component {
             Password: '',
             Latitude: '',
             Longitude: '',
+            flag: '',
             isLoading: false,
             fileData: '',
             imageSource: '',
             selectedFile: '',
+            showDatePicker: false,
+            dd: '',
+            mm: '',
+            yy: '',
+            gender: '',
         }
     }
     async componentDidMount() {
@@ -80,9 +106,11 @@ export default class Registration extends Component {
                 console.log('Camera Error: ', response.errorMessage);
             } else {
                 const source = { uri: response.assets[0].uri };
-                this.setState({ imageSource: source });
-                fs.readFile(response.assets[0].uri, 'base64')
-                    .then(res => this.convertToBase64(res));
+                this.setState({ flag: "2" });
+                console.log("Images=====>", response.assets[0].uri);
+                console.log("Images=====>", response.assets[0].type);
+                console.log("Images=====>", response.assets[0].fileName);
+                this.setState({ imageSource: response.assets });
             }
         });
     };
@@ -92,7 +120,8 @@ export default class Registration extends Component {
                 type: [DocumentPicker.types.images],
             });
 
-            this.setState({ selectedFile: result });
+            this.setState({ imageSource: result });
+            this.setState({ flag: "1" });
         } catch (err) {
             if (DocumentPicker.isCancel(err)) {
                 // User cancelled the picker
@@ -102,17 +131,12 @@ export default class Registration extends Component {
         }
     };
     RegisterUser = async () => {
-        let body = {
-            "FirstName": this.state.FirstName,
-            "LastName": this.state.LastName,
-            "MobileNo": this.state.MobileNo,
-            "MailID": this.state.Email,
-            "Address": this.state.Address,
-            "Area_Code": this.state.AreaCode,
-            "Password": this.state.Password,
-            "Lat": this.state.Latitude,
-            "Long": this.state.Longitude,
-        }
+        this.setState({ isLoading: true })
+        var dob;
+        if (this.state.dd < 10)
+            dob = this.state.yy + "-" + this.state.mm + "-0" + this.state.dd;
+        else
+            dob = this.state.yy + "-" + this.state.mm + "-" + this.state.dd;
         const data = new FormData();
         const userInfo = {
             FirstName: this.state.FirstName,
@@ -124,19 +148,35 @@ export default class Registration extends Component {
             Password: this.state.Password,
             Lat: this.state.Latitude,
             Long: this.state.Longitude,
+            DOB: dob,
+            Gender: this.state.gender
         };
 
-        data.append('ImageFile', 
-            { uri: this.state.selectedFile[0].uri,
-            type: this.state.selectedFile[0].type,
-            name: this.state.selectedFile[0].name,
-        }
-        );
+        // data.append('ImageFile',
+        //     {
+        //         uri: this.state.selectedFile[0].uri,
+        //         type: this.state.selectedFile[0].type,
+        //         name: this.state.selectedFile[0].name,
+        //     }
+        // );
         data.append('UserInfo', JSON.stringify(userInfo));
-        console.log("Path1=>",this.state.selectedFile[0].uri);
-        console.log("Path2=>",this.state.selectedFile[0].name);
-        console.log("Path3=>",this.state.selectedFile[0].type);
-        console.log(data);
+        if (this.state.flag === "1") {
+            data.append('ImageFile',
+                {
+                    uri: this.state.imageSource[0].uri,
+                    type: this.state.imageSource[0].type,
+                    name: this.state.imageSource[0].name,
+                }
+            );
+        } else {
+            data.append('ImageFile',
+                {
+                    uri: this.state.imageSource[0].uri,
+                    type: this.state.imageSource[0].type,
+                    name: this.state.imageSource[0].fileName,
+                }
+            );
+        }
         try {
             const response = await fetch(global.URL + "Login/UserRegistration/", {
                 method: 'POST',
@@ -149,6 +189,8 @@ export default class Registration extends Component {
             console.log(response);
             if (response.status === 200) {
                 alert('File uploaded successfully!');
+                this.setState({ isLoading: false })
+                this.props.navigation.navigate('Login', { name: "Login" });
             } else {
                 alert('File upload failed.');
             }
@@ -184,6 +226,7 @@ export default class Registration extends Component {
         //     Alert.alert(global.TITLE, " " + error);
         // });
     }
+
     render() {
         return (
             <SafeAreaView contentContainerStyle={[styles.contentContainer]}>
@@ -213,6 +256,101 @@ export default class Registration extends Component {
                                     onChangeText={(txt) => { this.setState({ LastName: txt }); }}
                                 />
                             </View>
+                        </View>
+                        <View style={{ flexDirection: 'row', margin: 5 }}>
+                            <View style={{ flex: 1 }}>
+                                <SelectDropdown
+                                    data={Day}
+                                    onSelect={(selectedItem, index) => {
+                                        console.log(selectedItem, index)
+                                        this.setState({ dd: selectedItem });
+                                    }}
+                                    buttonTextAfterSelection={(selectedItem, index) => {
+                                        // text represented after item is selected
+                                        // if data array is an array of objects then return selectedItem.property to render after item is selected
+                                        return selectedItem
+                                    }}
+                                    rowTextForSelection={(item, index) => {
+                                        // text represented for each item in dropdown
+                                        // if data array is an array of objects then return item.property to represent item in dropdown
+                                        return item
+                                    }}
+                                    defaultButtonText="Day"
+                                    buttonStyle={styles.dropdownButton}
+                                    buttonTextStyle={styles.dropdownButtonText}
+                                    dropdownStyle={styles.dropdownContainer}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <SelectDropdown
+                                    data={Month}
+                                    onSelect={(selectedItem, index) => {
+                                        console.log(selectedItem, index)
+                                        this.setState({ mm: monthValueMapping[selectedItem] });
+                                    }}
+                                    buttonTextAfterSelection={(selectedItem, index) => {
+                                        // text represented after item is selected
+                                        // if data array is an array of objects then return selectedItem.property to render after item is selected
+                                        return selectedItem
+                                    }}
+                                    rowTextForSelection={(item, index) => {
+                                        // text represented for each item in dropdown
+                                        // if data array is an array of objects then return item.property to represent item in dropdown
+                                        return item
+                                    }}
+                                    defaultButtonText="Month"
+                                    search={true}
+                                    buttonStyle={styles.dropdownButton}
+                                    buttonTextStyle={styles.dropdownButtonText}
+                                    dropdownStyle={styles.dropdownContainer}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <SelectDropdown
+                                    data={Year}
+                                    onSelect={(selectedItem, index) => {
+                                        console.log(selectedItem, index)
+                                        this.setState({ yy: selectedItem });
+                                    }}
+                                    buttonTextAfterSelection={(selectedItem, index) => {
+                                        // text represented after item is selected
+                                        // if data array is an array of objects then return selectedItem.property to render after item is selected
+                                        return selectedItem
+                                    }}
+                                    rowTextForSelection={(item, index) => {
+                                        // text represented for each item in dropdown
+                                        // if data array is an array of objects then return item.property to represent item in dropdown
+                                        return item
+                                    }}
+                                    defaultButtonText="Year"
+                                    buttonStyle={styles.dropdownButton}
+                                    buttonTextStyle={styles.dropdownButtonText}
+                                    dropdownStyle={styles.dropdownContainer}
+                                />
+                            </View>
+                        </View>
+                        <View style={{ marginLeft: 5 }}>
+                            <SelectDropdown
+                                data={Gender}
+                                onSelect={(selectedItem, index) => {
+                                    console.log(selectedItem, index)
+                                    this.setState({ gender: selectedItem });
+                                }}
+                                buttonTextAfterSelection={(selectedItem, index) => {
+                                    // text represented after item is selected
+                                    // if data array is an array of objects then return selectedItem.property to render after item is selected
+                                    return selectedItem
+                                }}
+                                rowTextForSelection={(item, index) => {
+                                    // text represented for each item in dropdown
+                                    // if data array is an array of objects then return item.property to represent item in dropdown
+                                    return item
+                                }}
+                                defaultButtonText="Select Gender"
+                                buttonStyle={styles.dropdownButtonGender}
+                                buttonTextStyle={styles.dropdownButtonText}
+                                dropdownStyle={styles.dropdownContainer}
+                            />
                         </View>
                         <TextInput style={[styles.TextBox]}
                             placeholder="Phone Number"
@@ -249,24 +387,32 @@ export default class Registration extends Component {
                                 />
                             </View>
                         </View>
-                        
+
                         <View style={{ flexDirection: 'row', margin: 10 }}>
                             {this.state.imageSource && ( // Conditionally render the Image component
                                 <Image
                                     source={this.state.imageSource}
-                                    style={{ width: screenWidth - 20, height: 200 }}
+                                    style={{ width: screenWidth - 20, height: 180 }}
                                 />
                             )}
                         </View>
                         <View style={{ flexDirection: 'row' }}>
-                            <View style={{ flex: 1 }}>
-                                <TouchableOpacity style={[styles.BtnTab1]} onPress={() => this.pickDocument()} >
-                                    <Text style={[styles.BtnText, { fontSize: 18 }]}>Select Photo</Text>
+                            <View style={{ flex: 1, alignItems:'center'}}>
+                                <TouchableOpacity style={[styles.BtnIcon]} onPress={() => this.pickDocument()} >
+                                    <Image
+                                        source={Album}
+                                        style={{width:40,height:40}}
+                                    />
+                                    <Text style={[styles.BtnText, { fontSize: 10,margin:0 }]}>Album</Text>
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ flex: 1 }}>
-                                <TouchableOpacity style={[styles.BtnTab1]} onPress={() => this.openCamera()} >
-                                    <Text style={[styles.BtnText, { fontSize: 18 }]}>Open Camera</Text>
+                            <View style={{ flex: 1, alignItems:'center' }}>
+                                <TouchableOpacity style={[styles.BtnIcon]} onPress={() => this.openCamera()} >
+                                <Image
+                                        source={Camera}
+                                        style={{width:40,height:40}}
+                                    />
+                                    <Text style={[styles.BtnText, { fontSize: 10 }]}>Camera</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -275,6 +421,15 @@ export default class Registration extends Component {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
+                <Modal
+                    animationType="slide"
+                    transparent={false}
+                    visible={this.state.isLoading}>
+                    <View style={{ flex: 1, backgroundColor: "#ffffffee", alignItems: 'center', justifyContent: 'center' }}>
+                        <ActivityIndicator size="large" color="#F60000" />
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: "#434343", margin: 15 }}>Loading....</Text>
+                    </View>
+                </Modal>
             </SafeAreaView>
         )
     }

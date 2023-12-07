@@ -2,17 +2,16 @@ import React, { Component } from 'react'
 import { ImageBackground, PanResponder, Animated, BackHandler, FlatList, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
 import styles from './Style'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import search from './images/search.png';
 import order from './images/order.png';
-import getintouch from './images/mail2.png';
 import MenuIcon from './images/menu.png';
 import account from './images/account.png';
 import fav from './images/fav.png';
-import addfav from './images/addfav.png';
 import BottomBar from './BottomBar';
 import { Dropdown } from 'react-native-element-dropdown';
-import { HelperText } from 'react-native-paper';
-// import Icon from 'react-native-paper/lib/typescript/components/Icon';
+import NavigationService from './Service/NavigationService';
+import Slide1 from './images/slide1.png';
+import Slide2 from './images/slide2.png';
+import Slide3 from './images/slide3.png';
 
 let SCREEN_WIDTH = Dimensions.get('window').width;
 let SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -27,27 +26,9 @@ export default class Dashboard extends Component {
       showMenu: false,
       UserId: '',
       menuVisible: false,
-      RangeList: [{ label: '2 Kms', value: '2' }, { label: '4 Kms', value: '4' },
-      { label: '6 Kms', value: '6' }, { label: '8 Kms', value: '8' }, { label: 'All', value: 'All' },
-      ],
-      RangeVal: '',
-      horizontalData: [
-        {
-          id: '1',
-          itemName: 'Item 1',
-          description: 'This is item 1 description',
-          buyLink: 'https://example.com/item1',
-          image: require('./images/pizza.png'),
-        },
-        {
-          id: '2',
-          itemName: 'Item 2',
-          description: 'This is item 2 description',
-          buyLink: 'https://example.com/item2',
-          image: require('./images/pizza.png'),
-        },
-        // Add more items as needed
-      ]
+      scrollPosition: 0,
+      contentWidth: 0,
+      scrollingEnabled: true,
     }
     this.inactivityTimer = null;
     this.inactivityDuration = 3600000; // 5 minutes (in milliseconds)
@@ -78,10 +59,31 @@ export default class Dashboard extends Component {
   }
   componentDidMount = async () => {
     this.setState({ Login: await AsyncStorage.getItem('firstName') });
-    this._GetUserDetail();
-    this._SearchHotel(this.state.RangeVal);
-    // this. hideMenu();
+    this.startAutoScroll();
   }
+  componentWillUnmount() {
+    clearInterval(this.scrollInterval);
+  }
+  startAutoScroll = () => {
+    this.scrollInterval = setInterval(() => {
+      if (this.state.scrollingEnabled) {
+        this.scrollContent();
+      }
+    }, 3000); // Adjust the interval as needed
+  };
+
+  scrollContent = () => {
+    const { scrollPosition, contentWidth } = this.state;
+    const nextPosition = scrollPosition + SCREEN_WIDTH; // Adjust the scroll distance as needed
+
+    if (nextPosition >= contentWidth) {
+      this.scrollView.scrollTo({ x: 0, animated: true });
+      this.setState({ scrollPosition: 0 });
+    } else {
+      this.scrollView.scrollTo({ x: nextPosition, animated: true });
+      this.setState({ scrollPosition: nextPosition });
+    }
+  };
   _GetToken = async () => {
     let Body = {
       "loginId": await AsyncStorage.getItem('mobile'),
@@ -126,8 +128,12 @@ export default class Dashboard extends Component {
         var respObject = JSON.parse(responseText);
         this.setState({ UserId: respObject.id.toString() })
         await AsyncStorage.setItem('UserId', respObject.id.toString());
-        this.setState({ Profile: respObject.image })
-        await AsyncStorage.setItem('Profile', respObject.image);
+        if (respObject.image !== null) {
+          this.setState({ Profile: respObject.image })
+          await AsyncStorage.setItem('Profile', respObject.image);
+        } else {
+          await AsyncStorage.setItem('Profile', this.state.Profile);
+        }
         console.log("Res1==>", respObject);
       }
       catch (error) {
@@ -204,9 +210,9 @@ export default class Dashboard extends Component {
     console.log("5");
     this.props.navigation.navigate('Map', { name: 'Map' })
   }
-  MyAccount() {
+  OrderNow() {
     console.log("6");
-    this.props.navigation.navigate('MyAccount', { name: 'MyAccount' })
+    this.props.navigation.navigate('OrderNow', { name: 'OrderNow' })
   }
   GetOffer(regID, restImg, restfav, restlat, restlong) {
     this.props.navigation.navigate('RestaurantDetail', { regID: regID, img: restImg, fav: restfav, lat: restlat, long: restlong })
@@ -260,6 +266,29 @@ export default class Dashboard extends Component {
   _ChangePassword() {
     this.props.navigation.navigate('Map', { name: 'Map' })
   }
+  _Logout() {
+    Alert.alert(
+      'Logout App',
+      'Logout the application?', [{
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel'
+      }, {
+        text: 'OK',
+        onPress: async () => {
+          let IMEI = await AsyncStorage.getItem('IMEI');
+          await AsyncStorage.clear();
+          // await AsyncStorage.setItem("IMEI", IMEI);
+          setTimeout(() => {
+            NavigationService.navigateAndReset('Login');
+          }, 1000); // Wait for 1 second
+
+        }
+      },], {
+      cancelable: false
+    }
+    )
+  }
   // AddFav = async (RegId, UserId) => {
   //   this._GetToken();
   //   let token = "Bearer " + await AsyncStorage.getItem('accessToken');
@@ -311,7 +340,7 @@ export default class Dashboard extends Component {
         {/* Header #092D21 */}
         <View style={{ height: 40, backgroundColor: "#000", flexDirection: "row", justifyContent: "center", alignItems: 'center' }}>
           <View style={{ flex: 1, margin: 10 }}>
-            <TouchableOpacity onPress={() => { this._Logout() }}>
+            <TouchableOpacity>
               <Image style={{ width: 30, height: 30, marginRight: 0, borderRadius: 30, marginRight: 10, resizeMode: 'contain' }} source={{ "uri": this.state.Profile.toString() }} />
             </TouchableOpacity>
           </View>
@@ -322,75 +351,33 @@ export default class Dashboard extends Component {
           </View>
           {/* <Text style={{ flex: 1.8, fontSize: 16, color: "#ffffff", alignSelf: "center", textAlign: "center" }}>Dashboard</Text> */}
         </View>
-        <View style={{ flexDirection: 'row', position: 'relative' }}>
-          <Image
-            style={{ width: SCREEN_WIDTH, height: 250, alignSelf: 'center', zIndex: 2, position: 'relative' }}
-            source={require('./images/map.png')}
-          />
+        <View style={{ flex: 8, }}>
+          <ScrollView
+            ref={(ref) => (this.scrollView = ref)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onContentSizeChange={(contentWidth) =>
+              this.setState({ contentWidth })
+            }
+          >
+            {/* Add your content here */}
+            {/* <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightblue' }}>
+                            Item 1
+                        </Text> 
+                        <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightgreen' }}>
+                            Item 2
+                        </Text>
+                        <Text style={{ color: '#000', width: screenWidth, height: 600, backgroundColor: 'lightcoral' }}>
+                            Item 3
+                        </Text>
+                        */}
+            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide1} />
+            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide2} />
+            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide3} />
+          </ScrollView>
         </View>
-        <View style={{ flexDirection: 'row', backgroundColor: '#fff', marginTop: 10 }}>
-          <View style={[styles.searchContainer, { flex: 4 }]}>
-            <Image
-              source={search}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={[{ color: '#000', flex: 1, paddingVertical: 8, paddingHorizontal: 5, fontFamily: 'Inter-Regular' }]}
-              placeholder="Search Restaurant"
-              placeholderTextColor="#000"
-              onChangeText={(txt) => { this.setState({ search: txt }), this._SearchList(txt) }}
-            />
-          </View>
-          <View style={{ flex: 1, margin: 10, marginTop: 15, flexDirection: 'row' }}>
-            <Text style={{ color: '#000', fontFamily: 'Inter-Regular' }}>Filter</Text>
-            <TouchableOpacity style={[]} onPress={() => this._ShowModel()} >
-              <View style={{ flexDirection: 'row' }}>
-                <Image
-                  style={{ width: 30, height: 30, alignSelf: 'center' }}
-                  source={require('./images/filter.png')}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={{ backgroundColor: '#fff', padding: 10 }}>
-          {/* <Text style={{ fontWeight: 'bold' }}>Login As {this.state.Login}</Text> */}
-          <Text style={[styles.ListHeading]}>Nearby Stores</Text>
-        </View>
-        <FlatList style={{ backgroundColor: '#fff', height: 400 }}
-          showsVerticalScrollIndicator
-          data={this.state.horizontalData}
-          keyExtractor={(item) => item.registrationID}
-          renderItem={({ item, index }) => (
-            <View key={index} style={[styles.horizontalListItem, { flexDirection: 'row' }]}>
-              <View style={{ flex: 2 }}>
-                <TouchableOpacity key={index} onPress={() => this.GetOffer(item.registrationID, item.image, item.favourite, item.lat, item.long)} >
-                  <Text style={styles.itemName}>{item.restaurentName}</Text>
-                  <Text style={styles.address}>{item.address}</Text>
-                  <Text style={styles.address}>5:00 am-5:00 am</Text>
-                  <Text style={styles.address}>DRIVE THRU</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ margin: 10 }}>
-                  <Image
-                    source={require('./images/location.png')} // Replace with the actual icon source
-                  />
-                  {item.distance !== undefined ? item.distance.toFixed(2) : ''} Km
-                </Text>
-                {/* <TouchableOpacity key={index} onPress={() => this.AddFav(item.registrationID, this.state.UserId)}>
-                  {item.favourite === "FALSE" &&
-                    <Image source={addfav} style={{ height: 25, width: 25, margin: 15 }} />
-                  }
-                  {item.favourite === "True" &&
-                    <Image source={fav} style={{ height: 25, width: 25, margin: 15 }} />
-                  }
-                </TouchableOpacity> */}
-              </View>
-            </View>
-          )}
-        />
-        <BottomBar onHomePress={() => this.MyHome()} onAccountPress={() => this.MyAccount()} onFavPress={() => this.MyFav()} />
+
+        <BottomBar onHomePress={() => this.MyHome()} onOrderPress={() => this.OrderNow()} onFavPress={() => this.MyFav()} />
         {/* Menu */}
         {this.state.menuVisible && (
           <View

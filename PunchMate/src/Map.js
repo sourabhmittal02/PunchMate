@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import { ImageBackground, PanResponder, Animated, BackHandler, FlatList, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
+import { PermissionsAndroid, PanResponder, Animated, BackHandler, FlatList, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
 import styles from './Style'
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import startImg from './images/start.png';
 import destinationImg from './images/destination.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from 'react-native-geolocation-service';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -54,6 +55,8 @@ export default class Map extends Component {
         }
     }
     componentDidMount = async () => {
+        this.requestLocationPermission();
+        this.intervalId = setInterval(this.requestLocationPermission, 5000);
         this.setState({ Profile: await AsyncStorage.getItem('Profile') });
         // var dest = this.props.route.params.lat + "," + this.props.route.params.long;
         var destLat = parseFloat(this.props.route.params.lat);
@@ -81,6 +84,49 @@ export default class Map extends Component {
         }
         // this.getDirections();
 
+    }
+    componentWillUnmount() {
+        // Clear the interval when the component is unmounted
+        clearInterval(this.intervalId);
+      }
+    requestLocationPermission = async () => {
+        if (Platform.OS === 'ios') {
+            this.getCurrentLocation();
+        } else {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+                );
+
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    this.getCurrentLocation();
+                } else {
+                    // Permission denied
+                }
+            } catch (error) {
+                console.warn(error);
+            }
+        }
+    }
+    getCurrentLocation = async () => {
+        Geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                console.log('Current Location:', latitude, longitude);
+                this.setState({ LAT: latitude.toString() })
+                this.setState({ LONG: longitude.toString() })
+                const updatedCoordinates = [...this.state.coordinates];
+                updatedCoordinates[0] = {
+                    latitude: parseFloat(latitude.toString()),
+                    longitude: parseFloat(longitude.toString()),
+                };
+                this.setState({ coordinates: updatedCoordinates });
+            },
+            error => {
+                console.warn(error.code, error.message);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
     }
     getDirections = async () => {
         const { origin, destination } = this.state;
@@ -148,9 +194,9 @@ export default class Map extends Component {
                     {/* {this.state.coordinates.map((coordinate, index) =>
                             <Marker key={`coordinate_${index}`} coordinate={coordinate} />
                         )} */}
-                    {this.state.coordinates && 
-                    <Marker image={startImg} coordinate={this.state.coordinates[0]} title="Origin"
-                    />}
+                    {this.state.coordinates &&
+                        <Marker image={startImg} coordinate={this.state.coordinates[0]} title="Origin"
+                        />}
                     {this.state.coordinates && (
                         <Marker image={destinationImg} coordinate={this.state.coordinates[1]} title="Destination" />
                     )}
@@ -194,7 +240,7 @@ export default class Map extends Component {
                 </MapView>
                 {/* Display duration and distance */}
                 <View style={styles.overlay}>
-                    <Text style={styles.overlayText}>{`Duration: ${parseInt(duration/60)} Hours.${parseInt(duration%60)} Min`}</Text>
+                    <Text style={styles.overlayText}>{`Duration: ${parseInt(duration / 60)} Hours.${parseInt(duration % 60)} Min`}</Text>
                     <Text style={styles.overlayText}>{`Distance: ${parseInt(distance)} Km`}</Text>
                 </View>
             </SafeAreaView>

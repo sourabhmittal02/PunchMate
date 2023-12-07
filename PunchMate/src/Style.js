@@ -9,6 +9,26 @@ const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
+  dropdownButton: {
+    backgroundColor: '#fff', // Change the background color of the button
+    borderRadius: 15,
+    width:'90%',
+    height:35
+  },
+  dropdownButtonGender: {
+    backgroundColor: '#fff', // Change the background color of the button
+    borderRadius: 10,
+    width:'98%',
+    height:40
+  },
+  dropdownButtonText: {
+    color: '#000', // Change the text color of the button
+    fontSize: 16,
+  },
+  dropdownContainer: {
+    borderColor: '#3498db', // Change the border color of the dropdown container
+    borderRadius: 5,
+  },
   overlay: {
     position: 'absolute',
     bottom: 50,
@@ -81,6 +101,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 7,
   },
+  BtnIcon: {
+    width: '40%',
+    borderRadius: 5,
+    height: 55,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: -5,
+    backgroundColor: "#fc6a57",//"#FEAE0F",//"#db4437",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3, },
+    shadowOpacity: 0.29,
+    shadowRadius: 4.65,
+    elevation: 7,
+  },
   BtnText: {
     color: "#fff",
     fontFamily: 'Inter-Bold',
@@ -130,9 +164,7 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontFamily:'Inter-Bold',
-    fontSize: 18,
     color: '#000',
-    margin: 5,
     marginTop: 5,
   },
   distance: {
@@ -143,6 +175,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontFamily:'Inter-Regular',
+    fontSize: 12,
     marginLeft: 5,
     marginBottom: 0,
     color: '#000'
@@ -273,21 +306,24 @@ const styles = StyleSheet.create({
   },
   dropdownText:{
     color: '#000',
+    fontSize:12,
     fontFamily:'Inter-Regular',
 },
 placeholderStyle: {
   fontFamily:'Inter-Regular',
-  fontSize: 14,
+  fontSize: 12,
   color: "#000",
   borderWidth: 1,
   borderRightWidth:0,
   backgroundColor: '#fff',
   height: 40,
   padding: 10,
+  borderTopLeftRadius:5,
+  borderBottomLeftRadius:5,
 },
 selectedTextStyle: {
   fontFamily:'Inter-Regular',
-  fontSize: 16,
+  fontSize: 12,
   color: "#000",
   borderWidth: 1,
   backgroundColor: '#fff',
@@ -302,7 +338,9 @@ iconStyle: {
   marginRight: 10,
   borderWidth:1,
   borderLeftWidth:0,
-  borderColor:'#000'
+  borderColor:'#000',
+  borderTopRightRadius:5,
+  borderBottomRightRadius:5
 },
 inputSearchStyle: {
   fontFamily:'Inter-Regular',

@@ -11,7 +11,7 @@ export default class BottomBar extends Component {
         }
 
   render() {
-    const {onHomePress, onFavPress,onAccountPress } = this.props;
+    const {onHomePress, onFavPress,onOrderPress } = this.props;
     return (
         <SafeAreaView>
             <View style={{flexDirection:'row'}}>
@@ -34,7 +34,7 @@ export default class BottomBar extends Component {
                     </TouchableOpacity>
                 </View>
                 <View style={{flex:1, borderWidth: 1, alignItems: 'center',marginTop:10, backgroundColor: '#e5c961'}}>
-                <TouchableOpacity style={stylesBar.btnBar} onPress={onFavPress}>
+                <TouchableOpacity style={stylesBar.btnBar} onPress={onOrderPress}>
                     {/* <Image style={stylesBar.imageIcon} source={fav}></Image> */}
                         <Text style={stylesBar.buttonText}>Order Now</Text>
                     </TouchableOpacity>

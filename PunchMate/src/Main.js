@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, Button, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native'
 import { Screen } from 'react-native-screens';
 import styles from './Style'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slide1 from './images/slide1.png';
 import Slide2 from './images/slide2.png';
 import Slide3 from './images/slide3.png';
@@ -17,7 +18,11 @@ export default class Main extends Component {
         };
     }
 
-    componentDidMount() {
+    componentDidMount=async()=> {
+        let user = await AsyncStorage.getItem('firstName');
+        if (user !== null) {
+            this.props.navigation.navigate('Dashboard', { name: 'Dashboard' })
+        }
         this.startAutoScroll();
     }
 
