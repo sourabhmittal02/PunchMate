@@ -7,8 +7,24 @@ const { StyleSheet, Dimensions } = React;
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
-
+const DOT_SIZE = 10;
 const styles = StyleSheet.create({
+  dot: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    backgroundColor: '#fc6a57', // You can customize the color
+    marginHorizontal: 8,
+  },
+  dotContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+  },
   dropdownButton: {
     backgroundColor: '#fff', // Change the background color of the button
     borderRadius: 15,
@@ -46,24 +62,35 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   contentContainer: {
-    fontFamily:'Inter-Regular',
+    backgroundColor:'#fff',
+    fontFamily:'Poppins-Regular',
     paddingLeft: 5,
     paddingRight: 5,
     paddingTop: 5,
     paddingBottom: 5,
+    height:screenHeight
   },
   SideBarItem:{
-    fontFamily:'Inter-Regular',
+    fontFamily:'Poppins-Regular',
     fontSize: 12, 
     color: '#fff', 
     marginLeft: 10
   },
+  BtnLink:{},
+  BtnLinkText:{
+    color: "#fc6a57",
+    fontFamily: 'Poppins',
+    fontSize: 14,
+    textDecorationLine:'underline'
+  },
   BtnLogin: {
-    borderRadius: 15,
+    // color:'#fff',
+    fontFamily:'Poppins-Regular',
+    borderRadius: 30,
     height: 50,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 15,
     margin: 10,
     backgroundColor: "#fc6a57",//"#FEAE0F",//"#db4437",
     shadowColor: "#000",
@@ -117,8 +144,8 @@ const styles = StyleSheet.create({
   },
   BtnText: {
     color: "#fff",
-    fontFamily: 'Inter-Bold',
-    fontSize: 20,
+    fontFamily: 'Poppins',
+    fontSize: 15,
     // fontWeight: 'bold',
   },
   BtnTabText: {
@@ -140,11 +167,11 @@ const styles = StyleSheet.create({
   horizontalListItem: {
     // borderTopLeftRadius:15,
     // borderTopRightRadius:15,
-    borderColor: '#ccc',// '#092D21',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+    // borderColor: '#ccc',// '#092D21',
+    // borderTopWidth: 1,
+    // borderBottomWidth: 1,
     width: screenWidth - 20,
-    height: 110,  //240,
+    height: 140,  //240,
     backgroundColor: '#fff',// '#092D21',//#527e70',// '#092D21',
     justifyContent: 'center',
     alignItems: 'flex-start',
@@ -154,34 +181,66 @@ const styles = StyleSheet.create({
     // marginBottom:10,
   },
   itemImage: {
-    borderRadius: 5,
-    // borderTopRightRadius:15,
-    // marginTop:5,
-    margin: 0,
-    width: 150,
-    height: 150,
+    margin: 5, height: 100, width: 100, borderRadius: 5
 
   },
   itemName: {
-    fontFamily:'Inter-Bold',
-    color: '#000',
+    fontFamily:'Poppins-Bold',
+    fontSize:14,
+    color: '#ff7f50',
     marginTop: 5,
   },
+  statusPending: {
+    fontFamily:'Poppins',
+    fontSize:12,
+    color: '#ff7f50',
+    textAlign:'center',
+    width:'50%',
+    borderWidth:1,
+    borderRadius:15,
+    borderColor:'#ff7f50'
+  },
+  statusComplete: {
+    fontFamily:'Poppins',
+    fontSize:12,
+    textAlign:'center',
+    backgroundColor:'#e6f4e7',
+    borderRadius:15,
+    color: '#008a0e',
+  },
+  statusCancel: {
+    fontFamily:'Poppins',
+    fontSize:12,
+    textAlign:'center',
+    backgroundColor:'#fee6e6',
+    borderRadius:15,
+    color: '#f20000',
+  },
+  ListIcon:{
+    tintColor:'#4d4d4d',height:15,width:15
+  },
   distance: {
-    fontFamily:'Inter-Regular',
+    fontFamily:'Poppins-Regular',
     color: 'red',
     marginTop: 10,
     textAlign: 'right', width: 350,
   },
   address: {
-    fontFamily:'Inter-Regular',
-    fontSize: 12,
+    fontFamily:'Poppins-Regular',
+    fontSize: 11,
     marginLeft: 5,
     marginBottom: 0,
     color: '#000'
   },
+  profileImg:{
+    width: 50, 
+    height: 50, 
+    marginRight: 0, 
+    borderRadius: 30, 
+    resizeMode: 'contain'
+  },
   time: {
-    fontFamily:'Inter-Regular',
+    fontFamily:'Poppins-Regular',
     color: '#000',
     marginTop: -20,
     textAlign: 'right', width: 350,
@@ -202,18 +261,18 @@ const styles = StyleSheet.create({
   ListHeading: {
     color: "#000",
     fontSize: 16,
-    fontFamily:'Inter-Bold',
+    fontFamily:'Poppins-Bold',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
+    backgroundColor: '#fff',
+    borderRadius: 20,
     marginLeft: 10,
     marginTop: 10,
   },
   searchIcon: {
-    marginLeft: 10,
+    margin: 10,
     width: 25, height: 25
   },
   popup: {
@@ -234,14 +293,15 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Transparent background color
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Transparent background color
     padding: 10,
   },
   quantityText: {
     margin: 4,
     marginLeft:10,
-    color: '#fff',
-    fontSize: 20,
+    marginRight:10,
+    color: '#000',
+    fontSize: 15,
   },
   button: {
     backgroundColor: '#007AFF',
@@ -251,7 +311,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 24,
-    color: 'white',
+    color: '#000',
   },
   StarImg:{
     height:50,
@@ -266,7 +326,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5, // Adjust the top position as needed
     right: -5, // Adjust the right position as needed
-    backgroundColor: 'red', // Customize the background color
+    backgroundColor: '#ff7f50', // Customize the background color
     borderRadius: 10, // Adjust the border radius as needed
     width: 20, // Adjust the width as needed
     height: 20, // Adjust the height as needed
@@ -288,7 +348,7 @@ const styles = StyleSheet.create({
   checkoutButtonText: {
     color: 'white', // Customize the text color
     fontSize: 20, // Customize the font size
-    fontFamily:'Inter-Bold',
+    fontFamily:'Poppins-Bold',
   },
   CartItemHeader: {
     margin: 0,
@@ -307,10 +367,10 @@ const styles = StyleSheet.create({
   dropdownText:{
     color: '#000',
     fontSize:12,
-    fontFamily:'Inter-Regular',
+    fontFamily:'Poppins-Regular',
 },
 placeholderStyle: {
-  fontFamily:'Inter-Regular',
+  fontFamily:'Poppins-Regular',
   fontSize: 12,
   color: "#000",
   borderWidth: 1,
@@ -322,7 +382,7 @@ placeholderStyle: {
   borderBottomLeftRadius:5,
 },
 selectedTextStyle: {
-  fontFamily:'Inter-Regular',
+  fontFamily:'Poppins-Regular',
   fontSize: 12,
   color: "#000",
   borderWidth: 1,
@@ -343,7 +403,7 @@ iconStyle: {
   borderBottomRightRadius:5
 },
 inputSearchStyle: {
-  fontFamily:'Inter-Regular',
+  fontFamily:'Poppins-Regular',
   height: 40,
   fontSize: 16,
   backgroundColor: 'white',
@@ -351,7 +411,7 @@ inputSearchStyle: {
   borderColor: 'blue',
 },
 dropdown: {
-  fontFamily:'Inter-Regular',
+  fontFamily:'Poppins-Regular',
   flex: 2,
   color:'#000',
 },

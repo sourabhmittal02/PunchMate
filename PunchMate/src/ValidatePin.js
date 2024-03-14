@@ -42,9 +42,10 @@ export default class ValidatePin extends Component {
                     if (respObject!=-1) {
                         // this.setState({ isLoading: false });
                         await AsyncStorage.setItem('firstName', respObject.firstName);
+                        await AsyncStorage.setItem('UserId',  respObject.id.toString());
                         await AsyncStorage.setItem('PIN', this.state.PIN);
                         AsyncStorage.setItem('accessToken',respObject.accessToken)
-                        this.props.navigation.navigate('Dashboard', { name: 'Dashboard' })
+                        this.props.navigation.navigate('OrderNow', { name: 'OrderNow' })
                     }else {
                         this.setState({ isLoading: false });
                         Alert.alert(global.TITLE, "Invalid Pin")
@@ -64,32 +65,38 @@ export default class ValidatePin extends Component {
             });
         }
     }
+    ForgetPass=async()=>{
+        const mob=await AsyncStorage.getItem('mobile');
+        console.log(mob);
+        this.props.navigation.navigate('ForgetPass', { name: 'ForgetPass' })
+    }
     render() {
         return (
             <SafeAreaView contentContainerStyle={[styles.contentContainer]}>
                 <ScrollView>
-                    <View style={{ margin: -5, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ margin: 2, alignItems: 'center', justifyContent: 'center' }}>
                         <Image
-                            source={require('./images/icon.png')}
-                            style={{ width: screenWidth, height: screenHeight - 350 }}
+                            source={require('./images/bgLogin.png')}
+                            style={{ width: screenWidth, height: screenHeight - 220 }}
                         />
                     </View>
-                    <View style={[{ margin: 0, width: screenWidth, marginTop: -50, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: '#000', height: screenHeight - 290 }]}>
-                        <Text style={{ margin: 30, color: '#fff', fontSize: 24,fontFamily:'Inter' }}>
-                            Get food you want
-                        </Text>
-                        <Text style={{ marginTop: -20, margin: 30, color: '#fff', fontSize: 14,fontFamily:'Inter' }}>
-                           Validate Pin
+                    <View style={[{ margin: 0, width: screenWidth, marginTop: -50, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: '#fff', height: screenHeight -440 }]}>
+                        <Text style={{ margin: 30, color: '#000', fontSize: 20,fontFamily:'Poppins-Bold' }}>
+                            Validate Passcode
                         </Text>
                         <View>
-                            <TextInput style={{color:'#000', textAlign:'center', margin: 10, borderRadius: 10, backgroundColor: '#fff', fontSize: 18,fontFamily:'Inter' }}
-                                placeholder="Enter Pin"
-                                placeholderTextColor="#000"
+                            <TextInput style={{color:'#000',padding:10, margin: 5, borderRadius: 20, backgroundColor: '#fff', fontSize: 15,fontFamily:'Inter' }}
+                                placeholder="Enter Passcode"
+                                placeholderTextColor="#aaa"
+                                backgroundColor="#eee"
                                 secureTextEntry={true}
                                 onChangeText={(txt) => { this.setState({ PIN: txt }); }}
                             />                          
                             <TouchableOpacity style={[styles.BtnLogin]} onPress={() => this.ValidatePin()} >
-                                <Text style={[styles.BtnText]}>Validate</Text>
+                                <Text style={[styles.BtnText]}>Login</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{margin:0}} onPress={() => this.ForgetPass()} >
+                                <Text style={[styles.BtnLinkText,{textAlign:'center',margin:5}]}>Forget Passcode</Text>
                             </TouchableOpacity>
                         </View>
                        

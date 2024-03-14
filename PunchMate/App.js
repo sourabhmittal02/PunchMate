@@ -19,9 +19,18 @@ import Map from './src/Map';
 import QRCodes from './src/QRCodes';
 import Favourite from './src/Favourite';
 import OrderNow from './src/OrderNow';
+import Direction from './src/Direction';
+import Account from './src/Account';
+import ChangePassword from './src/ChangePassword';
+import ShowReview from './src/ShowReview';
+import WriteReview from './src/WriteReview';
+import ForgetPass from './src/ForgetPass';
+import OfferList from './src/OfferList';
+
 const Stack = createNativeStackNavigator();
 function App() {
-  global.URL = "https://punchmate01.azurewebsites.net/";
+  //global.URL = "https://punchmate01.azurewebsites.net/";
+  global.URL = "http://20.5.185.135/punchmateapi/";
   global.TITLE = "PUNCH MATE";
   return (
     <>
@@ -44,6 +53,13 @@ function App() {
           <Stack.Screen name="Favourite" component={Favourite} />         
           <Stack.Screen name="QRCodes" component={QRCodes} />         
           <Stack.Screen name="Map" component={Map} />         
+          <Stack.Screen name="Direction" component={Direction} />         
+          <Stack.Screen name="Account" component={Account} />         
+          <Stack.Screen name="ChangePassword" component={ChangePassword} />         
+          <Stack.Screen name="ShowReview" component={ShowReview} />         
+          <Stack.Screen name="WriteReview" component={WriteReview} />         
+          <Stack.Screen name="ForgetPass" component={ForgetPass} />         
+          <Stack.Screen name="OfferList" component={OfferList} />         
         </Stack.Navigator>
       </NavigationContainer>
     </>

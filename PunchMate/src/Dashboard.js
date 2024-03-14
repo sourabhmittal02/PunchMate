@@ -9,9 +9,10 @@ import fav from './images/fav.png';
 import BottomBar from './BottomBar';
 import { Dropdown } from 'react-native-element-dropdown';
 import NavigationService from './Service/NavigationService';
-import Slide1 from './images/slide1.png';
-import Slide2 from './images/slide2.png';
-import Slide3 from './images/slide3.png';
+// import Slide1 from './images/slide1.png';
+// import Slide2 from './images/slide2.png';
+// import Slide3 from './images/slide3.png';
+import Slide4 from './images/slide4.gif';
 
 let SCREEN_WIDTH = Dimensions.get('window').width;
 let SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -29,6 +30,7 @@ export default class Dashboard extends Component {
       scrollPosition: 0,
       contentWidth: 0,
       scrollingEnabled: true,
+      selectedTab: 'Home',
     }
     this.inactivityTimer = null;
     this.inactivityDuration = 3600000; // 5 minutes (in milliseconds)
@@ -336,7 +338,7 @@ export default class Dashboard extends Component {
   // }
   render() {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#ccc' }}>
         {/* Header #092D21 */}
         <View style={{ height: 40, backgroundColor: "#000", flexDirection: "row", justifyContent: "center", alignItems: 'center' }}>
           <View style={{ flex: 1, margin: 10 }}>
@@ -371,13 +373,16 @@ export default class Dashboard extends Component {
                             Item 3
                         </Text>
                         */}
-            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide1} />
+            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide4} />
+            {/* <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide1} />
             <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide2} />
-            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide3} />
+            <Image style={{ width: SCREEN_WIDTH, height: 600 }} source={Slide3} /> */}
           </ScrollView>
         </View>
 
-        <BottomBar onHomePress={() => this.MyHome()} onOrderPress={() => this.OrderNow()} onFavPress={() => this.MyFav()} />
+        <View style={{ position: 'relative', bottom: 0, left: 0, right: 50, top: -30 }}>
+          <BottomBar selectedTab={this.state.selectedTab} onHomePress={() => this.MyHome()} onOrderPress={() => this.OrderNow()} onFavPress={() => this.MyFav()} />
+        </View>
         {/* Menu */}
         {this.state.menuVisible && (
           <View

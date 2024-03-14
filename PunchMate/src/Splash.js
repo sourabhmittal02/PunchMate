@@ -17,6 +17,7 @@ const Splash = ({ navigation }) => {
     }, 2000); // 2000 milliseconds (2 seconds) here is just an example
     this.requestLocationPermission();
   }, []);
+  
   requestLocationPermission = async () => {
     if (Platform.OS === 'ios') {
       this.getCurrentLocation();
@@ -52,8 +53,9 @@ const Splash = ({ navigation }) => {
 }
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       <Image
-        source={require('./images/splash.png')}
+        source={require('./images/bgSplash.png')}
         style={styles.image}
       />
     </View>
@@ -65,11 +67,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white', // Customize the background color
+    backgroundColor: '#EFECE7', // Customize the background color
   },
   image: {
     width: screenWidth, // Adjust the image size as needed
-    height: screenHeight,
+    height: screenHeight+40,
   },
 });
 
