@@ -150,6 +150,7 @@ export default class RestaurantDetail extends Component {
             "userID": await AsyncStorage.getItem('UserId'),
             "restaurant_ID": this.state.RestaurantID,
         }
+        console.log('body==>',body);
         fetch(global.URL + "RMS/OrderCOunt", {
             method: "POST",
             headers: {
@@ -288,7 +289,7 @@ export default class RestaurantDetail extends Component {
     };
     // Function to increase the quantity of an item
     increaseQuantity = (offerID, productID, productName, rate, prodImg, isAlcoholic, isVeg) => {
-        // console.log("==========OfferID:", offerID, "ProductID:", productID);
+        console.log("==========OfferID:", offerID, "ProductID:", productID, "==", this.state.offerId);
         let totalQuantity = 0;
         let offerCount = 0;
         if (this.state.offerId == 1)
@@ -302,17 +303,19 @@ export default class RestaurantDetail extends Component {
         else if (this.state.offerId == 5)
             offerCount = 8;
         for (const item of this.state.selectedProducts) {
-            totalQuantity += item.quantity;
+            if (item.restaurantID === this.state.RestaurantID) {
+                totalQuantity += item.quantity;
+            }
         }
         const totalCount = this.state.OrderCount + totalQuantity;
         console.log("Count==>", this.state.OrderCount, "TOtal==>", totalCount, "totalQty==>", totalQuantity);
-        if (totalCount == offerCount) {
-            console.log("Count2==>", totalCount);
+        if (totalCount === offerCount) {
+            console.log("Free--->", totalCount);
             const newProduct = {
                 offerID,
                 productID,
                 productName,
-                prodType:"Free",
+                prodType: "Free",
                 rate: 0,
                 quantity: 1,
                 image: prodImg,
@@ -322,7 +325,7 @@ export default class RestaurantDetail extends Component {
                 restaurantName: this.state.RestName,
                 restaurantAddress: this.state.RestAddress,
                 restaurantRating: this.state.rating,
-                restaurantDistance: this.state.RestDistance,
+                restaurantDistance: this.state.CurrDistance,
             };
             this.setState((prevState) => ({
                 selectedProducts: [...prevState.selectedProducts, newProduct],
@@ -332,20 +335,39 @@ export default class RestaurantDetail extends Component {
             const existingProductIndex = this.state.selectedProducts.findIndex(
                 (product) => product.offerID === offerID && product.productID === productID && product.rate !== 0 && product.restaurantID === this.state.RestaurantID
             );
-
             if (existingProductIndex !== -1) {
+                console.log("product exists", existingProductIndex);
                 // If the product exists, update its quantity
-                const updatedSelectedProducts = [...this.state.selectedProducts];
-                updatedSelectedProducts[existingProductIndex].quantity++;
-                this.setState({ selectedProducts: updatedSelectedProducts });
+                // const updatedSelectedProducts = [...this.state.selectedProducts];
+                // updatedSelectedProducts[existingProductIndex].quantity++;
+                // this.setState({ selectedProducts: updatedSelectedProducts });
+                const updatedSelectedProducts = this.state.selectedProducts.map((product, index) => {
+                    if (index === existingProductIndex) {
+                        // Check your condition here and update the quantity accordingly
+                        if (product.offerID === offerID && product.productID === productID && product.rate !== 0 && product.restaurantID === this.state.RestaurantID) {
+                            return { ...product, quantity: product.quantity + 1 }; // Increase quantity by 1
+                        } else {
+                            return { ...product }; // No change needed
+                        }
+                    } else {
+                        return { ...product }; // No change needed for other products
+                    }
+                });
+
+                this.setState({ selectedProducts: updatedSelectedProducts },()=>{
+                    AsyncStorage.setItem('ProductList', JSON.stringify(updatedSelectedProducts))
+                        .then(() => console.log('ProductList updated in AsyncStorage'))
+                        .catch((error) => console.error('Error updating ProductList in AsyncStorage:', error));
+                });
             } else {
                 // If the product doesn't exist, add it to the list
+                console.log("product not exists");
                 const newProduct = {
                     offerID,
                     productID,
                     productName,
                     rate,
-                    prodType:"Paid",
+                    prodType: "Paid",
                     quantity: 1,
                     image: prodImg,
                     Alcohol: isAlcoholic,
@@ -354,7 +376,7 @@ export default class RestaurantDetail extends Component {
                     restaurantName: this.state.RestName,
                     restaurantAddress: this.state.RestAddress,
                     restaurantRating: this.state.rating,
-                    restaurantDistance: this.state.RestDistance,
+                    restaurantDistance: this.state.CurrDistance,
                 };
                 this.setState((prevState) => ({
                     selectedProducts: [...prevState.selectedProducts, newProduct],
@@ -362,29 +384,41 @@ export default class RestaurantDetail extends Component {
             }
         }
         this.setState({ showCheckoutButton: true, });
-        console.log(this.state.selectedProducts);
-        this.setState((prevState) => {
-            const updatedProductList = { ...prevState.productList };
-            const offerProducts = updatedProductList[offerID];
+        // console.log('Updated--->', this.state.selectedProducts);
+        // this.setState((prevState) => {
+        //     const updatedProductList = { ...prevState.productList };
+        //     const offerProducts = updatedProductList[offerID];
 
-            if (offerProducts) {
-                const updatedProducts = offerProducts.map((product) =>
-                    product.pid === productID
-                        ? { ...product, orderedQuntity: product.orderedQuntity + 1 }
-                        : product
-                );
+        //     if (offerProducts) {
+        //         const updatedProducts = offerProducts.map((product) =>
+        //             product.pid === productID
+        //                 ? { ...product, orderedQuntity: product.orderedQuntity + 1 }
+        //                 : product
+        //         );
 
-                updatedProductList[offerID] = updatedProducts;
-            }
+        //         updatedProductList[offerID] = updatedProducts;
+        //     }
 
-            return {
-                productList: updatedProductList,
-            };
-        });
+        //     return {
+        //         productList: updatedProductList,
+        //     };
+        // });
     };
 
     // Function to decrease the quantity of an item in a specific offer
     decreaseQuantity = (offerID, productID) => {
+        var offerquantity = 0;
+        if (offerID === 1) {
+            offerquantity = 4;
+        } else if (offerID === 2) {
+            offerquantity = 5;
+        } else if (offerID === 3) {
+            offerquantity = 6;
+        } else if (offerID === 4) {
+            offerquantity = 7;
+        } else if (offerID === 5) {
+            offerquantity = 8;
+        }
         // Check if the product is already in the selectedProducts list
         const existingProductIndex = this.state.selectedProducts.findIndex(
             (product) => product.offerID === offerID && product.productID === productID && product.restaurantID === this.state.RestaurantID
@@ -418,10 +452,31 @@ export default class RestaurantDetail extends Component {
                 updatedProductList[offerID] = updatedProducts;
             }
             console.log("UPDATED+++++++>", updatedProductList);
+            let prodList = this.state.selectedProducts;
+            const totalQuantity = prodList.reduce((total, item) => {
+                if (item.restaurantId === this.state.RestaurantID) {
+                    return total + item.quantity;
+                }
+                return total;
+            }, 0);
+            if (totalQuantity <= offerquantity) {
+                // Find the index of the product to delete
+                const indexToDelete = this.state.selectedProducts.findIndex(
+                    (item) => item.offerID === offerID && item.prodType === 'Free' && item.restaurantID === this.state.RestaurantID
+                );
+                console.log('indexToDelete==>', indexToDelete)
+                if (indexToDelete !== -1) {
+                    // Remove the product from the list
+                    prodList.splice(indexToDelete, 1);
+                    // Update AsyncStorage with the modified list
+                    this.setState({ selectedProducts: prodList });
+                }
+            }
             return {
                 productList: updatedProductList,
             };
         });
+
     };
     //Showing List of Orders
     renderOfferItem = ({ item }) => {
@@ -505,7 +560,24 @@ export default class RestaurantDetail extends Component {
     renderOfferItemNew = ({ item }) => {
         const { expandedOffers, productList } = this.state;
         const isExpanded = expandedOffers[item.offerID];
-        const products = productList[item.offerID];
+        var products = productList[item.offerID];
+        //==========Check Seleted Product in assign qut to product list=======================
+        if (products && Array.isArray(products)) {
+
+            const selectedRestaurantOffers = this.state.selectedProducts.filter(offer => offer.restaurantID === this.props.route.params.regID);
+            const updatedProductList = products.map(product => {
+                const matchedOffer = selectedRestaurantOffers.find(offer => offer.productID === product.pid);
+                if (matchedOffer) {
+                    return {
+                        ...product,
+                        orderedQuntity: product.orderedQuntity + matchedOffer.quantity
+                    };
+                }
+                return product;
+            });
+            products = updatedProductList;
+        }
+        //================================
         // Check if products is defined
         if (typeof products === 'undefined') {
             return null; // Return null or an empty view when products is undefined
@@ -843,7 +915,7 @@ export default class RestaurantDetail extends Component {
                             <TouchableOpacity onPress={() => this.GoBack()}>
                                 <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
                             </TouchableOpacity></View>
-                        <View style={{ flex: 1 }}><Text style={{ marginTop: 5, fontSize: 18, fontFamily: 'Inter', color: 'white', }}>  Punch Mate</Text></View>
+                        <View style={{ flex: 1 }}><Text style={{ marginTop: 5, fontSize: 18, fontFamily: 'Inter', color: 'white', }}>  CaféRewards</Text></View>
                         <View style={{ marginTop: 5, flex: 0.2, alignItems: 'flex-end' }}>
                             <TouchableOpacity onPress={() => this.AddFav()}>
                                 {this.state.RestFav === "True" &&
@@ -854,13 +926,13 @@ export default class RestaurantDetail extends Component {
                                 }
                             </TouchableOpacity>
                         </View>
-                        <View style={{ marginTop: 5, flex: 0.1, alignItems: 'flex-end' }}>
+                        {/* <View style={{ marginTop: 5, flex: 0.1, alignItems: 'flex-end' }}>
                             <TouchableOpacity onPress={() => this._ShowMap()}>
                                 <Image style={{ width: 25, height: 25 }} source={require('./images/location.png')} />
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                         {this.state.selectedProducts.length > 0 && (
-                            <View style={{ marginTop: 5, flex: 0.1, alignItems: 'flex-end' }}>
+                            <View style={{ marginLeft: 10, marginTop: 5, flex: 0.1, alignItems: 'flex-end' }}>
                                 <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.cartIconContainer}>
                                     <Image style={{ width: 25, height: 25 }} source={require('./images/cart.png')} />
                                     <View style={styles.itemCountContainer}>
@@ -880,7 +952,7 @@ export default class RestaurantDetail extends Component {
                     <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'center', borderRadius: 30, borderWidth: 1, borderColor: '#ccc', marginTop: -40, backgroundColor: '#fff', margin: 10 }}>
                         <View style={{ flex: 0.3 }}><Image source={time} style={{ width: 20, height: 20, margin: 5 }} /></View>
                         <View style={{ flex: 2, flexDirection: 'column' }}>
-                            <Text style={{ fontSize: 11, margin: 0, color: '#000', fontFamily: 'Inter-Bold' }}>{this.state.EstDuration} away</Text>
+                            <Text style={{ fontSize: 11, margin: 0, color: '#000', fontFamily: 'Poppins-Bold' }}>{this.state.EstDuration} away</Text>
                             <Text style={{ fontSize: 11, margin: 0, color: '#000' }}>{this.state.CurrDistance.toLocaleUpperCase()} </Text>
                         </View>
                         <View style={{ flex: 1 }}>
@@ -921,13 +993,13 @@ export default class RestaurantDetail extends Component {
                             keyExtractor={(item) => item.offerID.toString()}
                         />
                     </View>
-                    {/* <View visible={showCheckoutButton} style={{}}>
+                    <View visible={showCheckoutButton} style={{}}>
                         {showCheckoutButton && (
-                            <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.checkoutButton}>
-                                <Text style={styles.checkoutButtonText}>Checkout</Text>
+                            <TouchableOpacity onPress={() => this.handleCheckout()} style={styles.BtnLogin}>
+                                <Text style={styles.checkoutButtonText}>Go To Cart</Text>
                             </TouchableOpacity>
                         )}
-                    </View> */}
+                    </View>
                 </View>
             </SafeAreaView>
         )

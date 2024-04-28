@@ -15,7 +15,7 @@ const Splash = ({ navigation }) => {
       // Navigate to your app's main screen or the screen you want to display after the splash screen
       navigation.navigate('Main');
     }, 2000); // 2000 milliseconds (2 seconds) here is just an example
-    this.requestLocationPermission();
+  //  this.requestLocationPermission();
   }, []);
   
   requestLocationPermission = async () => {

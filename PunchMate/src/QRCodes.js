@@ -26,7 +26,7 @@ export default class QRCodes extends Component {
         this.setState({ Name: await AsyncStorage.getItem('firstName') })
     }
     _GoHome(){
-        this.props.navigation.navigate('OrderNow');
+        this.props.navigation.navigate('OrderNow',{offerId:null});
     }
     _CancelOrder(){
         Alert.alert(
@@ -59,7 +59,7 @@ export default class QRCodes extends Component {
                             var jsonList = respObject;
                             console.log(jsonList);
                             if(respObject.response===1){
-                                this.props.navigation.navigate('OrderNow')
+                                this.props.navigation.navigate('OrderNow',{offerId:null});
                             }else{
                                 Alert.alert(global.TITLE,respObject.status);
                             }
@@ -86,8 +86,8 @@ export default class QRCodes extends Component {
                         <QRCode 
                             value={this.props.route.params.orderID}
                             logo={logo}
-                            logoSize={100}
-                            // logoBorderRadius={50}
+                            logoSize={70}
+                            logoBorderRadius={20}
                             logoMargin={-25}
                             logoBackgroundColor='#fff'
                             linearGradient={true}

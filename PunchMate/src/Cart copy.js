@@ -127,7 +127,7 @@ export default class Cart extends Component {
                 AsyncStorage.removeItem('ProductList');
                 // this.props.navigation.navigate('QRCode', { orderID: jsonList.response })
             }else{
-                Alert.alert("Punch Mate",jsonList.status);
+                Alert.alert("CaféRewards",jsonList.status);
             }
         });
         this.props.navigation.navigate('QRCodes', { orderID: orderID })

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { ImageBackground, BackHandler, PermissionsAndroid, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
+import { BackHandler, PermissionsAndroid, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
 import styles from './Style'
 import Header from './Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,7 @@ let SCREEN_HEIGHT = Dimensions.get('window').height;
 export default class OrderList extends Component {
   constructor(props) {
     super(props);
+    this.handleBackPress = this.handleBackPress.bind(this);
     this.state = {
       UserId: '',
       R_Name: '',
@@ -31,6 +32,7 @@ export default class OrderList extends Component {
       currentIndex: 0,
       Profile: 'https://punchmateblobstorageac.blob.core.windows.net/punchmateappimg/nophoto.jpg',
     }
+    // this.handleBackPress = this.handleBackPress.bind(this);
   }
 
   async componentDidMount() {
@@ -40,7 +42,19 @@ export default class OrderList extends Component {
     setTimeout(() => {
       this.startAutoScroll();
     }, 1000);
+    // BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
+  componentWillUnmount() {
+    this.stopAutoScroll();
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+  }
+  handleBackPress = () => {
+    if (this.state.showPopup) {
+      this.setState({ showPopup: false });
+      return true; // Prevent default back button behavior
+    }
+    return false;
+  };
   _GetToken = async () => {
     let Body = {
       "loginId": await AsyncStorage.getItem('mobile'),
@@ -148,16 +162,17 @@ export default class OrderList extends Component {
   ShowRating = async (oid, uid, restId) => {
     this.props.navigation.navigate('ShowReview', { OrderId: oid, UserId: uid, RestId: restId })
   }
-  Close() {
-    this.setState({ showPopup: !this.state.showPopup });
-  }
+  // Close() {
+  //   this.setState({ showPopup: !this.state.showPopup });
+  // }
   CloseQR() {
     this.setState({ showQR: !this.state.showQR });
   }
-  GenQRCode(OID, RestId) {
+  GenQRCode(OID, RestId,RestName,Amt) {
     var orderID = RestId + "," + this.state.UserId + "," + OID;
-    this.setState({ OrderId: orderID });
-    this.setState({ showQR: !this.state.showQR });
+    // this.setState({ OrderId: orderID });
+    // this.setState({ showQR: !this.state.showQR });
+    this.props.navigation.navigate('QRCodes', { orderId: orderID, RestName: RestName, Amount: Amt })
   }
   OrderNow() {
     console.log("6");
@@ -175,11 +190,7 @@ export default class OrderList extends Component {
     console.log("8");
     this.props.navigation.navigate('OfferList', { name: 'OfferList' })
 }
-  componentWillUnmount() {
-    this.stopAutoScroll();
-  }
-
-  startAutoScroll = () => {
+   startAutoScroll = () => {
     const pendingOrdersCount = this.state.OrderList.filter(item => item.orderStatus === 'Pending').length;
     this.timer = setInterval(() => {
       const { currentIndex } = this.state;
@@ -245,7 +256,7 @@ export default class OrderList extends Component {
                           </TouchableOpacity>
                         </View>
                         <View style={{ flex: 0.8, marginTop: 20 }}>
-                          <TouchableOpacity onPress={() => this.GenQRCode(item.order_ID, item.registrationID)}>
+                          <TouchableOpacity onPress={() => this.GenQRCode(item.order_ID, item.registrationID,item.restaurentName,item.order_amount)}>
                             <Image source={QR} style={{ height: 25, width: 25 }} />
                           </TouchableOpacity>
                           <View style={{ flexDirection: 'row', marginTop: 20 }}>
@@ -332,14 +343,14 @@ export default class OrderList extends Component {
           </View>
         </Modal>
         {/* Detail Show */}
-        <Modal visible={this.state.showPopup} transparent={true} animationType='fade' onRequestClose={this.Close}>
-          <View style={[styles.popup, { flexDirection: 'column' }]}>
+        <Modal visible={this.state.showPopup} transparent={true} animationType='fade' onRequestClose={() => {this.handleBackPress()}}>
+          <View style={[styles.popup, {flexDirection: 'column' }]}>
             <View style={{ flex: 1, flexDirection: 'row' }}>
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <Text style={{ fontSize: 14, color: '#000', fontFamily: 'Inter-Bold' }}>Order Detail({this.state.R_Name})</Text>
               </View>
               <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
-                <TouchableOpacity onPress={() => this.Close()}>
+                <TouchableOpacity onPress={() => this.setState({ showPopup: false })}>
                   <Text style={{ fontSize: 20, color: '#fc6a57', fontFamily: 'Inter-Bold', }}>X</Text>
                 </TouchableOpacity>
               </View>
@@ -349,8 +360,8 @@ export default class OrderList extends Component {
                 showsVerticalScrollIndicator
                 data={this.state.OrderDetail}
                 renderItem={({ item, index }) => (
-                  <View key={index} style={[styles.horizontalListItem, { flexDirection: 'row' }]}>
-                    <View style={{ flex: 2 }}>
+                  <View key={index} style={[styles.horizontalListItem, {height: 120 }]}>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.itemName}>{item.pName}</Text>
                       <Text style={styles.address}>Date: {moment(item.order_Date).format("MMM DD, yyyy")}</Text>
                       <Text style={styles.address}>Rate: ${item.price}</Text>

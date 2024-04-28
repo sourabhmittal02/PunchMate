@@ -57,7 +57,7 @@ class Direction extends Component {
         Geolocation.getCurrentPosition(
             position => {
                 const { latitude, longitude } = position.coords;
-                console.log('Current Location:', latitude, longitude);
+                // console.log('Current Location:', latitude, longitude);
                 // this.setState({ LAT: latitude.toString() })
                 // this.setState({ LONG: longitude.toString() })
                 const updatedCoordinates = [...this.state.coordinates];
@@ -96,7 +96,7 @@ class Direction extends Component {
     render() {
         const { destination, height, width } = this.props;
         const { isMapReady } = this.state;
-        console.log("co==>", this.state.coordinates);
+        // console.log("co==>", this.state.coordinates);
         return (
             <View style={[styles.container, { height: height, width: width }]}>
                 <MapView
@@ -129,8 +129,8 @@ class Direction extends Component {
                                     console.log(`Started routing between "${params.origin}" and "${params.destination}"`);
                                 }}
                                 onReady={result => {
-                                    console.log(`Distance: ${result.distance} km`)
-                                    console.log(`Duration: ${result.duration} min.`)
+                                    // console.log(`Distance: ${result.distance} km`)
+                                    // console.log(`Duration: ${result.duration} min.`)
                                     // Set duration and distance in the state
                                     this.setState({
                                         distance: result.distance,

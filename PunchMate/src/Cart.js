@@ -64,22 +64,65 @@ export default class Cart extends Component {
     }
     async increaseQuantity(offerID, pid, restId) {
         console.log(offerID, pid, restId);
+        let totalQuantity = 0;
+        let offerCount = 0;
+        if (offerID == 1)
+            offerCount = 4;
+        else if (offerID == 2)
+            offerCount = 5;
+        else if (offerID == 3)
+            offerCount = 6;
+        else if (offerID == 4)
+            offerCount = 7;
+        else if (offerID == 5)
+            offerCount = 8;
+        for (const item of this.state.selectedProducts) {
+            if (item.restaurantID === restId) {
+            totalQuantity += item.quantity;
+            }
+        }
+
         const existingProductIndex = this.state.selectedProducts.findIndex(
             (product) => product.offerID === offerID && product.productID === pid && product.restaurantID === restId
         );
         console.log(existingProductIndex);
         if (existingProductIndex !== -1) {
-            // If the product exists, update its quantity
-            const updatedSelectedProducts = [...this.state.selectedProducts];
-            updatedSelectedProducts[existingProductIndex] = {
-                ...updatedSelectedProducts[existingProductIndex],
-                quantity: updatedSelectedProducts[existingProductIndex].quantity + 1
-            };
-            this.setState({ selectedProducts: updatedSelectedProducts }, () => {
-                AsyncStorage.setItem('ProductList', JSON.stringify(updatedSelectedProducts))
-                    .then(() => console.log('ProductList updated in AsyncStorage'))
-                    .catch((error) => console.error('Error updating ProductList in AsyncStorage:', error));
-            });
+            if(totalQuantity===offerCount){
+                //Add A Free Product
+                const updatedSelectedProducts = [...this.state.selectedProducts];
+                const newProduct = {
+                    offerID,
+                    productID:this.state.selectedProducts[existingProductIndex].productID,
+                    productName: this.state.selectedProducts[existingProductIndex].productName,
+                    prodType:"Free",
+                    rate: 0,
+                    quantity: 1,
+                    image: this.state.selectedProducts[existingProductIndex].image,
+                    Alcohol: this.state.selectedProducts[existingProductIndex].Alcohol,
+                    Veg: this.state.selectedProducts[existingProductIndex].Veg,
+                    restaurantID: restId,
+                    restaurantName: this.state.selectedProducts[existingProductIndex].restaurantName,
+                    restaurantAddress: this.state.selectedProducts[existingProductIndex].restaurantAddress,
+                    restaurantRating: this.state.selectedProducts[existingProductIndex].restaurantRating,
+                    restaurantDistance: this.state.selectedProducts[existingProductIndex].restaurantDistance,
+                };
+                this.setState((prevState) => ({
+                    selectedProducts: [...prevState.selectedProducts, newProduct],
+                }));
+            }else{
+
+                // If the product exists, update its quantity
+                const updatedSelectedProducts = [...this.state.selectedProducts];
+                updatedSelectedProducts[existingProductIndex] = {
+                    ...updatedSelectedProducts[existingProductIndex],
+                    quantity: updatedSelectedProducts[existingProductIndex].quantity + 1
+                };
+                this.setState({ selectedProducts: updatedSelectedProducts }, () => {
+                    AsyncStorage.setItem('ProductList', JSON.stringify(updatedSelectedProducts))
+                        .then(() => console.log('ProductList updated in AsyncStorage'))
+                        .catch((error) => console.error('Error updating ProductList in AsyncStorage:', error));
+                });
+            }
         }
     }
     async decreaseQuantity(offerID, pid, restId, prodType) {
@@ -98,6 +141,8 @@ export default class Cart extends Component {
         const existingProductIndex = this.state.selectedProducts.findIndex(
             (product) => product.offerID === offerID && product.productID === pid && product.restaurantID === restId && product.prodType === prodType
         );
+        console.log(offerID,offerquantity,existingProductIndex);
+        
         if (existingProductIndex !== -1) {
             // If the product exists, update its quantity
             const updatedSelectedProducts = [...this.state.selectedProducts];
@@ -118,14 +163,20 @@ export default class Cart extends Component {
                 // Get the updated product list from AsyncStorage
                 let prodList = await AsyncStorage.getItem('ProductList');
                 prodList = JSON.parse(prodList);
-                totalQuantity = prodList.reduce((total, item) => total + item.quantity, 0);
+                //totalQuantity = prodList.reduce((total, item) => total + item.quantity, 0);
+                const totalQuantity = prodList.reduce((total, item) => {
+                    if (item.restaurantId === restId) {
+                        return total + item.quantity;
+                    }
+                    return total;
+                }, 0);
                 console.log('totalQuantity==>', totalQuantity,'offerquantity=>',offerquantity);
 
                 // Check if totalQuantity is less than offerquantity and prodType is 'Free'
                 if (totalQuantity <= offerquantity) {
                     // Find the index of the product to delete
                     const indexToDelete = prodList.findIndex(
-                        (item) => item.offerID === offerID && item.prodType === 'Free'
+                        (item) => item.offerID === offerID && item.prodType === 'Free' && item.restaurantID===restId
                     );
                     console.log('indexToDelete==>',indexToDelete)
                     if (indexToDelete !== -1) {
@@ -207,7 +258,7 @@ export default class Cart extends Component {
             <View style={{ flex: 1, flexDirection: 'row' }}>
                 <Image source={rating} style={{ marginTop: 3, height: 12, width: 12 }} />
                 <Text style={[styles.address, { fontFamily: 'Poppins-Bold' }]}>{restaurant.restaurantRating} | </Text>
-                <Text style={[styles.address, { fontFamily: 'Poppins-Bold' }]}>{restaurant.restaurantDistance} KM Away</Text>
+                <Text style={[styles.address, { fontFamily: 'Poppins-Bold' }]}>{restaurant.restaurantDistance.toUpperCase()} Away</Text>
             </View>
             <View style={{ flexDirection: 'row' }}>
                 <Image source={location} style={styles.ListIcon} />
@@ -275,7 +326,7 @@ export default class Cart extends Component {
 
                 // this.props.navigation.navigate('QRCode', { orderID: jsonList.response })
             } else {
-                Alert.alert("Punch Mate", jsonList.status);
+                Alert.alert("CaféRewards", jsonList.status);
             }
         });
     }
@@ -286,6 +337,7 @@ export default class Cart extends Component {
             (product) => product.restaurantID === RestId
         );
         const uniqueRestaurantIDs = [...new Set(selectedProducts.map(product => product.restaurantID))];
+        console.log('uniqueRestaurantIDs--->',uniqueRestaurantIDs);
         return (
             <View style={{ flex: 1 }}>
                 <Header />
@@ -321,6 +373,9 @@ export default class Cart extends Component {
                             />
                         </View>
                         <View style={{ padding: 10, backgroundColor: '#fff', height: 60, alignItems: 'center', zIndex: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 25, }, shadowOpacity: 0.8, shadowRadius: 14.65, elevation: 47, }}>
+                        {/* <TouchableOpacity style={[styles.BtnLogin,{width:'100%'}]}>
+                                <Text style={{ color: '#fff', fontFamily: 'Poppins-Bold', fontSize: 12 }}>Get QR Code Now</Text>
+                            </TouchableOpacity> */}
                             <Text style={{ color: '#000', fontFamily: 'Poppins-Bold', fontSize: 18 }}>Cart Total: ${totalQuantity}</Text>
                         </View>
                     </View>

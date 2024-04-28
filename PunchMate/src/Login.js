@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { ImageBackground, BackHandler, PermissionsAndroid, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
+import { BackHandler, PermissionsAndroid, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput, Modal, Platform } from 'react-native'
 import styles from './Style'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { backgroundColor } from '@shopify/restyle';
+import { backgroundColor, shadow } from '@shopify/restyle';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -16,6 +16,8 @@ export default class Login extends Component {
             // CustomerPass: '',
             isEnable: false,
             isLoading: false,
+            showPopup: false,
+            email: '',
             activeButton: 'button1',
         }
     }
@@ -56,7 +58,7 @@ export default class Login extends Component {
             }).then(response => response.text()).then(async responseText => {
                 try {
                     var respObject = JSON.parse(responseText);
-                    console.log("Golbal:",global.URL,"==",respObject);
+                    console.log("Golbal:", global.URL, "==", respObject);
                     // console.log(AsyncStorage.getItem('Current_Latitude'));
                     // console.log(AsyncStorage.getItem('Current_Longitude'));
                     await AsyncStorage.setItem('mobile', this.state.MobileNo);
@@ -84,6 +86,36 @@ export default class Login extends Component {
             });
         }
     }
+    async GetMobile() {
+        let body = {
+            "email": this.state.email
+        }
+        fetch(global.URL + "Login/GetMobileNo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "platform": Platform.OS
+            },
+            body: JSON.stringify(body),
+            redirect: 'follow'
+        }).then(response => response.text()).then(async responseText => {
+            try {
+                var respObject = JSON.parse(responseText);
+                console.log(respObject);
+                if (respObject.status === 1) {
+                    Alert.alert(global.TITLE, "Mobile No. Send to your registed mail");
+                    this.setState({ showPopup: false })
+                } else {
+                    Alert.alert(global.TITLE, respObject.message);
+                }
+            }
+            catch (error) {
+                this.setState({ isLoading: false });
+                console.log(error);
+            }
+        });
+    }
+    
     // GetResturantLogin() {
     //     let body = {
     //         "loginId": this.state.RestaurantId,
@@ -131,36 +163,49 @@ export default class Login extends Component {
         return (
             <SafeAreaView contentContainerStyle={[styles.contentContainer]}>
                 <ScrollView>
-                    <View style={{  margin: 2, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ margin: 2, alignItems: 'center', justifyContent: 'center' }}>
                         <Image
                             source={require('./images/bgLogin.png')}
                             style={{ width: screenWidth, height: screenHeight - 220 }}
                         />
                     </View>
                     {/* 092D21 */}
-                    <View style={[{ margin: 0, width: screenWidth, marginTop: -50, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: '#fff', height: 305 }]}>
-                        <Text style={{ margin: 30, color: '#000', fontSize: 24, fontFamily: 'Poppins-Bold' }}>
+                    <View style={[{ margin: 0, width: screenWidth, marginTop: -50, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: '#fff', height: 315 }]}>
+                        <Text style={{ margin: 20, color: '#000', fontSize: 20, fontFamily: 'Poppins-Bold' }}>
                             Login
                         </Text>
-                        <Text style={{ marginTop: -20, margin: 30, color: '#000', fontSize: 14, fontFamily: 'Poppins' }}>
+                        <Text style={{ marginTop: -20, margin: 20, color: '#000', fontSize: 14, fontFamily: 'Poppins' }}>
                             Please enter your mobile number
                         </Text>
-                        <View>
-                            <TextInput style={{padding:10, margin: 10, borderRadius: 20, fontSize: 15, color: '#000', fontFamily: 'Poppins-Regular' }}
-                                placeholder="Mobile Number"
-                                placeholderTextColor="#aaa"
-                                backgroundColor="#eee"
-                                keyboardType='number-pad'
-                                onChangeText={(txt) => { this.setState({ MobileNo: txt }); }}
-                            />
+                        <View style={{}}>
+                            <View style={{ flexDirection: 'row' }}>
+                                <View style={{backgroundColor:"#eee",paddingRight:0, padding:8, flex: 0, marginLeft: 10,borderTopLeftRadius:20,borderBottomLeftRadius:20 }}>
+                                    <Text style={{ fontSize: 15, color: '#000' }}>+61 - </Text>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <TextInput style={{marginLeft:0, height: 40, marginBottom: 0, padding: 0, marginTop: 0, margin: 10, borderTopRightRadius: 20, borderBottomRightRadius:20, fontSize: 15, color: '#000', fontFamily: 'Poppins-Regular' }}
+                                        placeholder="  Mobile Number"
+                                        placeholderTextColor="#aaa"
+                                        backgroundColor="#eee"
+                                        keyboardType='number-pad'
+                                        onChangeText={(txt) => { this.setState({ MobileNo: txt }); }}
+                                    />
+                                </View>
+                            </View>
                             {/* <TextInput style={{ margin: 10, marginTop: -2, marginBottom: -2, borderRadius: 10, backgroundColor: '#fff', fontSize: 18 }}
                                     placeholder="Enter Password"
                                     placeholderTextColor="#000"
                                     secureTextEntry={true}
                                     onChangeText={(txt) => { this.setState({ CustomerPass: txt }); }} /> */}
-                            <TouchableOpacity style={[styles.BtnLogin]} onPress={() => this.GetCustomerLogin()} >
+                            <TouchableOpacity style={[styles.BtnLogin, { height: 40,marginTop:40 }]} onPress={() => this.GetCustomerLogin()} >
                                 <Text style={[styles.BtnText]}>Continue</Text>
                             </TouchableOpacity>
+                            
+                            <View style={{ flexDirection: 'row-reverse', margin: 10}}>
+                                <TouchableOpacity onPress={() => this.setState({ showPopup: true })}>
+                                    <Text style={{ color: '#000', textDecorationLine: 'underline' }}>Forget Mobile No.</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         {/* :
                             <View>
@@ -178,6 +223,35 @@ export default class Login extends Component {
                                 </TouchableOpacity>
                             </View>
                         } */}
+                        {/* Detail Show */}
+                        <Modal visible={this.state.showPopup} transparent={true} animationType='fade' onRequestClose={() => { this.handleBackPress() }}>
+                            <View style={[styles.popup, { flexDirection: 'column' }]}>
+                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <Text style={{ fontSize: 14, color: '#000', fontFamily: 'Popins-Bold' }}>Enter Registered Email-Id</Text>
+                                    </View>
+                                    <View style={{ flex: 0.1, alignItems: 'flex-end' }}>
+                                        <TouchableOpacity onPress={() => this.setState({ showPopup: false })}>
+                                            <Text style={{ fontSize: 20, color: '#fc6a57', fontFamily: 'Popins-Bold', }}>X</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                <View style={{ width: '100%', }}>
+                                    <TextInput style={{ padding: 10, margin: 10, borderRadius: 20, fontSize: 15, color: '#000', fontFamily: 'Poppins-Regular' }}
+                                        placeholder="Email-Id"
+                                        placeholderTextColor="#aaa"
+                                        backgroundColor="#eee"
+                                        keyboardType='email-address'
+                                        onChangeText={(txt) => { this.setState({ email: txt }); }}
+                                    />
+                                </View>
+                                <View style={{ width: '100%', alignItems: 'center' }}>
+                                    <TouchableOpacity style={[styles.BtnLogin, { width: '50%' }]} onPress={() => this.GetMobile()}>
+                                        <Text style={{ color: '#fff' }}>Submit</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </Modal>
                         <Modal
                             animationType="slide"
                             transparent={false}

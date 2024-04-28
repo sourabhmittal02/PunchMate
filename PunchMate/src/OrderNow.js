@@ -234,7 +234,7 @@ export default class OrderNow extends Component {
             try {
                 var respObject = JSON.parse(responseText);
                 this.setState({ horizontalData: respObject })
-                console.log("Res2==>", this.state.horizontalData);
+                // console.log("Res2==>", this.state.horizontalData);
                 respObject.forEach(item => {
                     this._GetCount(item.registrationID);
                     //open on production
@@ -286,7 +286,7 @@ export default class OrderNow extends Component {
             try {
                 var respObject = JSON.parse(responseText);
                 this.setState({ horizontalData: respObject })
-                console.log("Res2==>", this.state.horizontalData);
+                // console.log("Res2==>", this.state.horizontalData);
                 respObject.forEach(item => {
                     this._GetCount(item.registrationID);
                     //open on production
@@ -334,7 +334,7 @@ export default class OrderNow extends Component {
             try {
                 var respObject = JSON.parse(responseText);
                 this.setState({ horizontalData: respObject })
-                console.log("Res2==>", this.state.horizontalData);
+                // console.log("Res2==>", this.state.horizontalData);
             }
             catch (error) {
                 this.setState({ isLoading: false });

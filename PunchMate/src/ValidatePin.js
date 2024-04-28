@@ -90,6 +90,7 @@ export default class ValidatePin extends Component {
                                 placeholderTextColor="#aaa"
                                 backgroundColor="#eee"
                                 secureTextEntry={true}
+                                keyboardType='number-pad'
                                 onChangeText={(txt) => { this.setState({ PIN: txt }); }}
                             />                          
                             <TouchableOpacity style={[styles.BtnLogin]} onPress={() => this.ValidatePin()} >

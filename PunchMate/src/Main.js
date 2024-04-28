@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
-import { Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, Modal, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native'
+import { PermissionsAndroid, Dimensions, SafeAreaView, Alert, ActivityIndicator, StatusBar, Image, Text, View, Modal, TouchableOpacity, ScrollView, TextInput, StyleSheet } from 'react-native'
 import { Screen } from 'react-native-screens';
 import styles from './Style'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Slide1 from './images/slide1.png';
-import Slide2 from './images/slide2.png';
-import Slide3 from './images/slide3.png';
-import Slide4 from './images/slide4.gif';
-import BottomBar from './BottomBar';
+import Geolocation from 'react-native-geolocation-service';
+import FastImage from 'react-native-fast-image';
+// import Slide1 from './images/slide1.png';
+// import Slide2 from './images/slide2.png';
+// import Slide3 from './images/slide3.png';
+// import Slide4 from './images/slide4.gif';
+// import BottomBar from './BottomBar';
 
 const screenWidth = Dimensions.get('window').width;
 export default class Main extends Component {
@@ -19,11 +21,13 @@ export default class Main extends Component {
             currentIndex: 0,
             scrollingEnabled: true,
             Sliders: [],
-            isLoading:false,
+            isLoading: false,
+            isGet: false,
         };
     }
 
     componentDidMount = async () => {
+        this.requestLocationPermission();
         let user = await AsyncStorage.getItem('firstName');
         if (user !== null) {
             this.props.navigation.navigate('OrderNow', { name: 'OrderNow' })
@@ -32,19 +36,23 @@ export default class Main extends Component {
         this.startAutoScroll();
     }
     _GetSlider() {
-        this.setState({isLoading:true});
+        let body = {
+            "id": 1,
+        }
+        this.setState({ isLoading: true });
         fetch(global.URL + "Login/GetLoginImages", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "platform": Platform.OS
             },
+            body: JSON.stringify(body),
             redirect: 'follow'
         }).then(response => response.text()).then(async responseText => {
             try {
                 var respObject = JSON.parse(responseText);
                 this.setState({ Sliders: respObject });
-                this.setState({isLoading:false});
+                this.setState({ isLoading: false });
                 console.log("Slider:==>", respObject);
             }
             catch (error) {
@@ -61,7 +69,40 @@ export default class Main extends Component {
     componentWillUnmount() {
         clearInterval(this.scrollInterval);
     }
+    requestLocationPermission = async () => {
+        if (Platform.OS === 'ios') {
+            this.getCurrentLocation();
+        } else {
+            try {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+                );
 
+                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                    this.getCurrentLocation();
+                } else {
+                    // Permission denied
+                }
+            } catch (error) {
+                console.warn(error);
+            }
+        }
+    }
+    getCurrentLocation = async () => {
+        Geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                console.log('Current Location:', latitude, longitude);
+                AsyncStorage.setItem('Current_Latitude', latitude.toString());
+                AsyncStorage.setItem('Current_Longitude', longitude.toString());
+                this.setState({ isGet: true })
+            },
+            error => {
+                console.warn(error.code, error.message);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+    }
     startAutoScroll = () => {
         this.scrollInterval = setInterval(() => {
             if (this.state.scrollingEnabled) {
@@ -102,6 +143,9 @@ export default class Main extends Component {
     MyFun() {
         this.props.navigation.navigate('Map', { name: 'Map' })
     }
+    async SignUp(){
+        this.props.navigation.navigate('Registration', { name: 'Registration' })
+    }
     render() {
         return (
             <SafeAreaView style={{ flex: 1, }}>
@@ -119,7 +163,15 @@ export default class Main extends Component {
                         {/* Add your content here */}
                         {this.state.Sliders.map((item, index) => (
                             <View key={index} style={{ flex: 1, alignItems: 'center' }}>
-                                <Image source={{ "uri": item.image }} style={{ height: 200, width: 200 }} />
+                                {/* <Image source={{ "uri": item.image }} style={{ height: 200, width: 200 }} /> */}
+                                <FastImage
+                                    style={{ height: 200, width: 200 }}
+                                    source={{
+                                        uri: item.image,
+                                        priority: FastImage.priority.high,
+                                    }}
+                                    resizeMode={FastImage.resizeMode.contain}
+                                />
                                 <Text style={{ marginTop: 50, fontFamily: 'Poppins-Bold', fontSize: 20, textAlign: 'center', color: '#fc6a57', width: screenWidth, }}>
                                     {item.text1}
                                 </Text>
@@ -153,9 +205,18 @@ export default class Main extends Component {
                         ))}
                     </View>
                 </View>
-                <TouchableOpacity style={[styles.BtnLogin, { width: screenWidth - 20 }]} onPress={() => this._Login()}>
-                    <Text style={{ color: '#fff', textAlign: 'center', padding: 5 }}>Login</Text>
-                </TouchableOpacity>
+                {this.state.isGet && (
+                    <>
+                        <TouchableOpacity style={[styles.BtnLogin, { width: screenWidth - 20 }]} onPress={() => this._Login()}>
+                            <Text style={{ color: '#fff', textAlign: 'center', padding: 5 }}>Login</Text>
+                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row-reverse', margin: 0 }}>
+                            <TouchableOpacity style={[styles.BtnLogin,{ width: screenWidth - 20 }]} onPress={() => this.SignUp()}>
+                                <Text style={{ color: '#fff' }}>Sign Up</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                )}
                 {/* <View style={{ flex: 0.8, marginTop: 20 }}>
                     <TouchableOpacity onPress={() => this._Login()} >
                         <Text style={{ textAlign: 'center', color: '#000', fontFamily: 'Inter-Bold', fontSize: 14, width: screenWidth - 20, height: 100, }}>

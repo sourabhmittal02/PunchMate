@@ -26,12 +26,13 @@ import ShowReview from './src/ShowReview';
 import WriteReview from './src/WriteReview';
 import ForgetPass from './src/ForgetPass';
 import OfferList from './src/OfferList';
+import RegisterOTP from './src/RegisterOTP';
 
 const Stack = createNativeStackNavigator();
 function App() {
   //global.URL = "https://punchmate01.azurewebsites.net/";
   global.URL = "http://20.5.185.135/punchmateapi/";
-  global.TITLE = "PUNCH MATE";
+  global.TITLE = "CaféRewards";
   return (
     <>
       <NavigationContainer ref={(navigatorRef) => {
@@ -60,6 +61,7 @@ function App() {
           <Stack.Screen name="WriteReview" component={WriteReview} />         
           <Stack.Screen name="ForgetPass" component={ForgetPass} />         
           <Stack.Screen name="OfferList" component={OfferList} />         
+          <Stack.Screen name="RegisterOTP" component={RegisterOTP} />         
         </Stack.Navigator>
       </NavigationContainer>
     </>

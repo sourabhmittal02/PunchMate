@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
   dropdownButtonGender: {
     backgroundColor: '#fff', // Change the background color of the button
-    borderRadius: 10,
+    borderRadius: 20,
     width:'98%',
     height:40
   },
@@ -100,12 +100,12 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   BtnTab1: {
-    width: '100%',
+    width: '90%',
     borderRadius: 15,
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    margin: 20,
     backgroundColor: "#fc6a57",//"#FEAE0F",//"#db4437",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3, },
@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   BtnIcon: {
-    width: '40%',
+    width: '30%',
     borderRadius: 5,
-    height: 55,
+    height: 45,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: -5,
@@ -152,11 +152,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
   },
-  TextBox: {
-    margin: 5, borderRadius: 10, backgroundColor: '#f2f2f2', fontSize: 14,
+  TextBox: { 
+    marginLeft: 15, color: '#000', fontSize: 13, width: '80%', padding: 2,
+    // margin: 5, borderRadius: 10, backgroundColor: '#f2f2f2', fontSize: 14,
     height: 40,
-    color: '#000',
-    borderWidth: 1, borderColor: '#000'
+    // color: '#000',
+    // borderWidth: 1, borderColor: '#000'
+  },
+  TextBoxContainer:{
+    borderRadius: 20, backgroundColor: '#fff', height: 40, margin: 5, 
   },
   card: {
     margin: 8,
@@ -347,7 +351,7 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: 'white', // Customize the text color
-    fontSize: 20, // Customize the font size
+    fontSize: 15, // Customize the font size
     fontFamily:'Poppins-Bold',
   },
   CartItemHeader: {

@@ -529,7 +529,7 @@ export default class RestaurantDetail extends Component {
                             <TouchableOpacity onPress={() => this.GoBack()}>
                                 <Image style={{ width: 25, height: 25, marginTop: 5 }} source={require('./images/back.png')} />
                             </TouchableOpacity></View>
-                        <View style={{ flex: 1 }}><Text style={{ fontSize: 18, fontFamily: 'Inter', color: 'white', }}>Punch Mate</Text></View>
+                        <View style={{ flex: 1 }}><Text style={{ fontSize: 18, fontFamily: 'Inter', color: 'white', }}>CaféRewards</Text></View>
                         <View style={{ flex: 0.2, alignItems: 'flex-end' }}>
                             <TouchableOpacity onPress={() => this.AddFav()}>
                                 {this.state.RestFav === "True" &&
